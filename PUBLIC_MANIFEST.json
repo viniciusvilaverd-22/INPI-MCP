@@ -1,11 +1,18 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "release": "community-v1",
-  "status": "PUBLISHED",
-  "generated_at": "2026-10-03",
-  "release_commit": "99ca8569426a38d8426f04b12891a2b25b7031c4",
+  "status": "CANDIDATE_0_2_1",
+  "generated_at": "2026-10-04",
   "repository": "viniciusvilaverd-22/INPI-MCP",
-  "branch": "main",
+  "branch": "rpi2908-e2e-candidate",
+  "published_baseline_commit": "4aed2c879746de7bb6efac12b6c103491a95ac90",
+  "candidate": {
+    "version": "0.2.1",
+    "rpi_2908_e2e": "PASS",
+    "tests_local": 11,
+    "remote_ci": "PENDING",
+    "production_touched": false
+  },
   "include": [
     ".env.example",
     ".gitattributes",
@@ -20,6 +27,7 @@
     "VALIDATION.json",
     "app/",
     "db/001_init.sql",
+    "db/002_specification_hash.sql",
     "docker-compose.yml",
     "docs/",
     "examples/",
@@ -43,14 +51,5 @@
     "diagnostic outputs",
     "validation snapshots",
     "one-off local ingestion/validation scripts"
-  ],
-  "constraints": {
-    "git_initialized": true,
-    "baseline_commit_created": true,
-    "remote_configured": true,
-    "baseline_push_performed": true,
-    "community_changes_committed": true,
-    "community_changes_pushed": true,
-    "production_touched": false
-  }
+  ]
 }
