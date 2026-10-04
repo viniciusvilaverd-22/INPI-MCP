@@ -5,6 +5,7 @@ import json
 import os
 import re
 import shutil
+import time
 import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -17,6 +18,10 @@ from pathlib import Path
 OFFICIAL_RPI_BASE_URL = "https://revistas.inpi.gov.br/txt"
 OFFICIAL_RPI_INDEX_URL = "https://revistas.inpi.gov.br/rpi/"
 USER_AGENT = "INPI-MCP-Community/0.3 (+https://github.com/viniciusvilaverd-22/INPI-MCP)"
+INDEX_USER_AGENT = (
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+)
 
 
 class RPIUnavailableError(RuntimeError):
@@ -135,24 +140,45 @@ def parse_rpi_index_html(html: str) -> list[RPIIndexEntry]:
     return sorted(entries.values(), key=lambda item: item.rpi_number, reverse=True)
 
 
-def fetch_latest_rpi_from_index(*, timeout: int = 30) -> RPIIndexEntry:
-    request = urllib.request.Request(
-        OFFICIAL_RPI_INDEX_URL,
-        headers={"User-Agent": USER_AGENT, "Accept": "text/html,*/*"},
-    )
-    with urllib.request.urlopen(request, timeout=timeout) as response:
-        raw = response.read()
-        charset = None
-        if getattr(response, "headers", None) is not None:
-            try:
-                charset = response.headers.get_content_charset()
-            except AttributeError:
+def fetch_latest_rpi_from_index(*, timeout: int = 30, attempts: int = 3) -> RPIIndexEntry:
+    if attempts <= 0 or attempts > 5:
+        raise ValueError("attempts deve estar entre 1 e 5")
+
+    for attempt in range(attempts):
+        request = urllib.request.Request(
+            OFFICIAL_RPI_INDEX_URL,
+            headers={
+                "User-Agent": INDEX_USER_AGENT,
+                "Accept": "text/html,application/xhtml+xml,*/*;q=0.8",
+                "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.7",
+                "Cache-Control": "no-cache",
+            },
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                raw = response.read()
                 charset = None
-    try:
-        html = raw.decode(charset or "utf-8")
-    except UnicodeDecodeError:
-        html = raw.decode("latin-1")
-    return parse_rpi_index_html(html)[0]
+                if getattr(response, "headers", None) is not None:
+                    try:
+                        charset = response.headers.get_content_charset()
+                    except AttributeError:
+                        charset = None
+            try:
+                html = raw.decode(charset or "utf-8")
+            except UnicodeDecodeError:
+                html = raw.decode("latin-1")
+            return parse_rpi_index_html(html)[0]
+        except urllib.error.HTTPError as exc:
+            retryable = exc.code in (502, 503, 504)
+            if not retryable or attempt + 1 >= attempts:
+                raise
+        except urllib.error.URLError:
+            if attempt + 1 >= attempts:
+                raise
+
+        time.sleep(2 ** attempt)
+
+    raise RuntimeError("indice oficial da RPI indisponivel apos tentativas")
 
 
 def _probe_request(url: str, method: str, timeout: int):
