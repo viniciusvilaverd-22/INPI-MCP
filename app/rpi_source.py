@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import shutil
 import urllib.error
 import urllib.request
@@ -10,9 +11,11 @@ import xml.etree.ElementTree as ET
 import zipfile
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
+from html.parser import HTMLParser
 from pathlib import Path
 
 OFFICIAL_RPI_BASE_URL = "https://revistas.inpi.gov.br/txt"
+OFFICIAL_RPI_INDEX_URL = "https://revistas.inpi.gov.br/rpi/"
 USER_AGENT = "INPI-MCP-Community/0.3 (+https://github.com/viniciusvilaverd-22/INPI-MCP)"
 
 
@@ -51,6 +54,52 @@ class RPIProbe:
         return asdict(self)
 
 
+@dataclass(frozen=True)
+class RPIIndexEntry:
+    rpi_number: int
+    rpi_date: str
+    source_url: str = OFFICIAL_RPI_INDEX_URL
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+
+class _RPIIndexParser(HTMLParser):
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self._in_row = False
+        self._in_cell = False
+        self._parts: list[str] = []
+        self._cells: list[str] = []
+        self.rows: list[list[str]] = []
+
+    def handle_starttag(self, tag, attrs):
+        tag = tag.lower()
+        if tag == "tr":
+            self._in_row = True
+            self._cells = []
+        elif tag in ("td", "th") and self._in_row:
+            self._in_cell = True
+            self._parts = []
+
+    def handle_data(self, data):
+        if self._in_cell:
+            self._parts.append(data)
+
+    def handle_endtag(self, tag):
+        tag = tag.lower()
+        if tag in ("td", "th") and self._in_cell:
+            value = " ".join("".join(self._parts).split())
+            self._cells.append(value)
+            self._parts = []
+            self._in_cell = False
+        elif tag == "tr" and self._in_row:
+            if self._cells:
+                self.rows.append(self._cells)
+            self._cells = []
+            self._in_row = False
+
+
 def _validate_number(rpi_number: int) -> int:
     value = int(rpi_number)
     if value <= 0 or value > 99999:
@@ -61,6 +110,49 @@ def _validate_number(rpi_number: int) -> int:
 def build_rpi_url(rpi_number: int) -> str:
     number = _validate_number(rpi_number)
     return f"{OFFICIAL_RPI_BASE_URL}/RM{number}.zip"
+
+
+def parse_rpi_index_html(html: str) -> list[RPIIndexEntry]:
+    parser = _RPIIndexParser()
+    parser.feed(html)
+    entries: dict[int, RPIIndexEntry] = {}
+    date_pattern = re.compile(r"^(?:\d{4}-\d{2}-\d{2}|\d{2}/\d{2}/\d{4})$")
+
+    for row in parser.rows:
+        if len(row) < 2:
+            continue
+        number_text = row[0].strip()
+        date_text = row[1].strip()
+        if not re.fullmatch(r"\d{4,5}", number_text):
+            continue
+        if not date_pattern.fullmatch(date_text):
+            continue
+        number = int(number_text)
+        entries[number] = RPIIndexEntry(number, date_text)
+
+    if not entries:
+        raise ValueError("nenhuma RPI valida encontrada no indice oficial")
+    return sorted(entries.values(), key=lambda item: item.rpi_number, reverse=True)
+
+
+def fetch_latest_rpi_from_index(*, timeout: int = 30) -> RPIIndexEntry:
+    request = urllib.request.Request(
+        OFFICIAL_RPI_INDEX_URL,
+        headers={"User-Agent": USER_AGENT, "Accept": "text/html,*/*"},
+    )
+    with urllib.request.urlopen(request, timeout=timeout) as response:
+        raw = response.read()
+        charset = None
+        if getattr(response, "headers", None) is not None:
+            try:
+                charset = response.headers.get_content_charset()
+            except AttributeError:
+                charset = None
+    try:
+        html = raw.decode(charset or "utf-8")
+    except UnicodeDecodeError:
+        html = raw.decode("latin-1")
+    return parse_rpi_index_html(html)[0]
 
 
 def _probe_request(url: str, method: str, timeout: int):
