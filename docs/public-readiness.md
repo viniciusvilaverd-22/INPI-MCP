@@ -1,6 +1,6 @@
 # Checklist de publicacao publica
 
-Este documento separa o **baseline ja publicado** das alteracoes **Community v1 ainda locais**.
+Este documento separa o **baseline ja publicado** da **Community v1 publicada**.
 
 ## Baseline Portfolio v1 — concluido
 
@@ -26,7 +26,7 @@ commit     = bec37a05d5ad383acf1e30fef35029cb1a8c18af
 message    = feat: establish INPI MCP portfolio release v1
 ```
 
-## Community v1 — estado local
+## Community v1 — publicada
 
 - [x] CLI de RPI oficial
 - [x] demo web local
@@ -37,12 +37,12 @@ message    = feat: establish INPI MCP portfolio release v1
 - [x] 10 testes PASS
 - [x] CLI RPI 2908 real PASS em modo inspect
 - [x] API/demo smoke PASS
-- [ ] commit da Community v1
-- [ ] push da Community v1
+- [x] commit da Community v1
+- [x] push da Community v1
 - [ ] CI remota da Community v1 confirmada
 - [ ] screenshot/GIF publico da demo
 
-As alteracoes Community v1 **nao foram publicadas** nesta etapa.
+Release commit: `99ca8569426a38d8426f04b12891a2b25b7031c4`.
 
 ## Arquivos que nao devem ser publicados
 
@@ -59,7 +59,7 @@ Por padrao, nao incluir:
 - resultados temporarios de testes;
 - scripts one-off vinculados ao ambiente local.
 
-## Gate para publicar a Community v1
+## Gate pos-publicacao
 
 Antes de qualquer novo commit/push:
 

@@ -3,6 +3,9 @@
   "release": "community-v1",
   "validated_at": "2026-10-03",
   "environment": "DEV",
+  "release_commit": "99ca8569426a38d8426f04b12891a2b25b7031c4",
+  "repository": "viniciusvilaverd-22/INPI-MCP",
+  "branch": "main",
   "tests": {
     "status": "PASS",
     "count": 10,
@@ -44,8 +47,8 @@
     "A instalacao Python 3.14 do host apresentou falha propria de asyncio/pdb; a validacao canonica foi executada em container Python 3.13."
   ],
   "community_changes": {
-    "committed": false,
-    "pushed": false
+    "committed": true,
+    "pushed": true
   },
   "production_readiness": "NOT_CLAIMED"
 }
