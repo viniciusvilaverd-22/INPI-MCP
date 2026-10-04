@@ -12,7 +12,8 @@ def test_health_and_search():
     client = TestClient(app)
     health = client.get("/health")
     assert health.status_code == 200
-    assert health.json()["release"] == "community-v1"\n    assert health.json()["version"] == "0.3.0"
+    assert health.json()["release"] == "community-v1"
+    assert health.json()["version"] == "0.3.0"
     response = client.post(
         "/v1/trademarks/search",
         json={"query": "MARCA EXEMPLO", "nice_classes": [39], "limit": 10},
