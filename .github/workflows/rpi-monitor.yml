@@ -36,8 +36,7 @@ jobs:
       - name: Garantir label de monitoramento
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          gh label create rpi-monitor             --color "D4A72C"             --description "RPI oficial detectada automaticamente pelo INPI MCP"             --force
+        run: gh label create rpi-monitor --color "D4A72C" --description "RPI oficial detectada automaticamente pelo INPI MCP" --force
 
       - name: Resolver ultimo numero ja detectado
         id: baseline
@@ -65,7 +64,7 @@ jobs:
       - name: Consultar fonte oficial
         id: probe
         run: |
-          python -m app.cli discover-rpi             --after "${{ steps.baseline.outputs.after }}"             --max-scan 4             --timeout 30 > /tmp/rpi-probe.json
+          python -m app.cli discover-rpi --after "${{ steps.baseline.outputs.after }}" --max-scan 4 --timeout 30 > /tmp/rpi-probe.json
           cat /tmp/rpi-probe.json
           python - <<'PY'
           import json
@@ -88,20 +87,6 @@ jobs:
             title="Nova RPI detectada: $number"
             existing="$(gh issue list --state all --search "$title in:title" --json number --jq 'length')"
             if [ "$existing" = "0" ]; then
-              gh issue create                 --title "$title"                 --label rpi-monitor                 --body "A automacao do INPI MCP detectou a RPI oficial **$number** em `https://revistas.inpi.gov.br/txt/RM$number.zip`.
-
-Esta rotina apenas detecta a publicacao. Ela **nao faz ingestao automatica**, nao altera banco de producao e nao substitui validacao de integridade.
-
-Para ingerir em um ambiente autorizado:
-
-```bash
-python -m app.cli ingest-next --max-count 1
-```
-
-Ou explicitamente:
-
-```bash
-python -m app.cli ingest-rpi $number
-```"
+              gh issue create --title "$title" --label rpi-monitor --body "A automacao do INPI MCP detectou a RPI oficial $number na fonte oficial. Esta rotina apenas detecta a publicacao: nao faz ingestao automatica nem altera banco. Para ingerir em ambiente autorizado use: python -m app.cli ingest-next --max-count 1. Alternativa explicita: python -m app.cli ingest-rpi $number."
             fi
           done
