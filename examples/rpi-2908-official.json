@@ -1,9 +1,10 @@
 {
-  "case": "RPI 2908 official download",
+  "case": "RPI 2908 official full E2E",
   "source_url": "https://revistas.inpi.gov.br/txt/RM2908.zip",
-  "environment": "DEV",
+  "environment": "DEV_DISPOSABLE_POSTGRES",
   "download_verified": true,
-  "full_ingestion_verified": false,
+  "full_ingestion_verified": true,
+  "parser_version": "rpi-marcas-xml-0.2.1",
   "zip": {
     "bytes": 10726796,
     "sha256": "63794e53ee247d0c70fb9b77f98ed45e2602bb0e5166e347c00d938efa1ff400"
@@ -12,5 +13,24 @@
     "bytes": 61214732,
     "sha256": "23392bfc9e03c52c9fa8befc9be21e4f3ee50993dfe21edb876cbbd62706089d"
   },
-  "note": "A evidencia historica comprova o download oficial. A execucao antiga falhou antes da etapa de ingestao completa."
+  "first_ingestion": {
+    "processes": 39858,
+    "nice_classes": 34736,
+    "events": 40201,
+    "seconds": 145.227
+  },
+  "second_ingestion": {
+    "processes": 39858,
+    "nice_classes": 34736,
+    "events": 40201,
+    "new_events": 0,
+    "seconds": 64.94,
+    "counts_unchanged": true
+  },
+  "gates": {
+    "full_real_ingestion": "PASS",
+    "idempotency": "PASS",
+    "api_real_data": "PASS",
+    "mcp_real_data": "PASS_IN_PROCESS"
+  }
 }
