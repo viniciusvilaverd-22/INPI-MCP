@@ -1,0 +1,92 @@
+name: Monitor official INPI RPIs
+
+on:
+  schedule:
+    - cron: "17 13 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: rpi-official-monitor
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    name: Detect new official RPI
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Instalar INPI MCP
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Garantir label de monitoramento
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh label create rpi-monitor --color "D4A72C" --description "RPI oficial detectada automaticamente pelo INPI MCP" --force
+
+      - name: Resolver ultimo numero ja detectado
+        id: baseline
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue list --state all --label rpi-monitor --limit 100 --json title > /tmp/rpi-issues.json
+          python - <<'PY'
+          import json
+          import os
+          import re
+
+          issues = json.load(open("/tmp/rpi-issues.json", encoding="utf-8"))
+          numbers = []
+          for item in issues:
+              match = re.search(r"Nova RPI detectada:\s*(\d+)", item.get("title", ""))
+              if match:
+                  numbers.append(int(match.group(1)))
+          baseline = max(numbers, default=2908)
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"after={baseline}\n")
+          print(f"RPI_MONITOR_AFTER={baseline}")
+          PY
+
+      - name: Consultar fonte oficial
+        id: probe
+        run: |
+          python -m app.cli discover-rpi --after "${{ steps.baseline.outputs.after }}" --max-scan 4 --timeout 30 > /tmp/rpi-probe.json
+          cat /tmp/rpi-probe.json
+          python - <<'PY'
+          import json
+          import os
+
+          result = json.load(open("/tmp/rpi-probe.json", encoding="utf-8"))
+          numbers = " ".join(str(n) for n in result["available_rpis"])
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"numbers={numbers}\n")
+              out.write(f"first_missing={result.get('first_missing_rpi') or ''}\n")
+          PY
+
+      - name: Abrir issues para novas RPIs
+        if: steps.probe.outputs.numbers != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMBERS: ${{ steps.probe.outputs.numbers }}
+        run: |
+          for number in $NUMBERS; do
+            title="Nova RPI detectada: $number"
+            existing="$(gh issue list --state all --search "$title in:title" --json number --jq 'length')"
+            if [ "$existing" = "0" ]; then
+              gh issue create --title "$title" --label rpi-monitor --body "A automacao do INPI MCP detectou a RPI oficial $number na fonte oficial. Esta rotina apenas detecta a publicacao: nao faz ingestao automatica nem altera banco. Para ingerir em ambiente autorizado use: python -m app.cli ingest-next --max-count 1. Alternativa explicita: python -m app.cli ingest-rpi $number."
+            fi
+          done

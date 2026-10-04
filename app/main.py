@@ -10,8 +10,9 @@ from .repository import TrademarkRepository
 from .services import TrademarkService
 from .schemas import SearchRequest, CompareRequest, IngestResponse
 from .ingest import ingest_xml
+from .rpi_incremental import get_ingestion_status
 
-VERSION = "0.2.1"
+VERSION = "0.3.0"
 RELEASE = "community-v1"
 DEMO_PATH = Path(__file__).parent / "static" / "demo.html"
 
@@ -51,6 +52,7 @@ def root():
         "demo": "/demo",
         "docs": "/docs",
         "health": "/health",
+        "rpi_status": "/v1/rpi/status",
         "disclaimer": "Projeto independente e nao oficial; resultados nao constituem decisao do INPI.",
     }
 
@@ -65,6 +67,11 @@ def demo():
     if not DEMO_PATH.exists():
         raise HTTPException(500, "demo local nao encontrada")
     return HTMLResponse(DEMO_PATH.read_text(encoding="utf-8"))
+
+
+@app.get("/v1/rpi/status")
+def rpi_status(session: Session = Depends(get_session)):
+    return get_ingestion_status(session)
 
 
 @app.post("/v1/trademarks/search")

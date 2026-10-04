@@ -57,3 +57,25 @@ class TrademarkEvent(Base):
         UniqueConstraint('rpi_number','trademark_id','dispatch_code','protocol_number','raw_payload_hash', name='uq_event_idempotency'),
         Index('ix_event_tm_rpi', 'trademark_id', 'rpi_number'),
     )
+
+class RPIIngestionState(Base):
+    __tablename__ = 'rpi_ingestion_state'
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, default=1)
+    last_ingested_rpi: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    last_checked_rpi: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
+
+class RPIIngestionRun(Base):
+    __tablename__ = 'rpi_ingestion_run'
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    rpi_number: Mapped[int] = mapped_column(Integer, unique=True, index=True)
+    status: Mapped[str] = mapped_column(String(16), index=True)
+    source_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    zip_sha256: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    xml_sha256: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    process_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    event_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    parser_version: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

@@ -42,8 +42,8 @@ jobs:
       - name: Smoke do runtime MCP
         run: python -c "from app.mcp_server import mcp; print(type(mcp).__name__)"
 
-  postgres-migration:
-    name: PostgreSQL migration 002
+  postgres-migrations:
+    name: PostgreSQL migrations 002-003
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -72,13 +72,25 @@ jobs:
         run: |
           docker run --rm --network host -e PGPASSWORD=inpi -v "$PWD:/src:ro" postgres:16             psql -h 127.0.0.1 -U inpi -d inpi_migration -v ON_ERROR_STOP=1 -f /src/db/002_specification_hash.sql
 
-      - name: Validar backfill, indice hash e especificacao longa
+      - name: Validar migration 002
         run: |
           docker run --rm --network host -e PGPASSWORD=inpi -v "$PWD:/src:ro" postgres:16             psql -h 127.0.0.1 -U inpi -d inpi_migration -f /src/tests/postgres/validate_002.sql
 
-      - name: Provar idempotencia da migration
+      - name: Provar idempotencia da migration 002
         run: |
           docker run --rm --network host -e PGPASSWORD=inpi -v "$PWD:/src:ro" postgres:16             psql -h 127.0.0.1 -U inpi -d inpi_migration -v ON_ERROR_STOP=1 -f /src/db/002_specification_hash.sql
+
+      - name: Aplicar migration 003
+        run: |
+          docker run --rm --network host -e PGPASSWORD=inpi -v "$PWD:/src:ro" postgres:16             psql -h 127.0.0.1 -U inpi -d inpi_migration -v ON_ERROR_STOP=1 -f /src/db/003_rpi_ingestion_state.sql
+
+      - name: Validar migration 003
+        run: |
+          docker run --rm --network host -e PGPASSWORD=inpi -v "$PWD:/src:ro" postgres:16             psql -h 127.0.0.1 -U inpi -d inpi_migration -f /src/tests/postgres/validate_003.sql
+
+      - name: Provar idempotencia da migration 003
+        run: |
+          docker run --rm --network host -e PGPASSWORD=inpi -v "$PWD:/src:ro" postgres:16             psql -h 127.0.0.1 -U inpi -d inpi_migration -v ON_ERROR_STOP=1 -f /src/db/003_rpi_ingestion_state.sql
 
   compose-smoke:
     name: Docker Compose quickstart
@@ -101,6 +113,9 @@ jobs:
           done
           docker compose logs
           exit 1
+
+      - name: Validar estado incremental vazio
+        run: docker compose exec -T api python -m app.cli rpi-status
 
       - name: Ingerir fixture e pesquisar
         run: |

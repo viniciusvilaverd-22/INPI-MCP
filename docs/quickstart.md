@@ -8,27 +8,20 @@ A forma mais simples de experimentar o INPI MCP e pela stack Docker de DEV.
 docker compose up --build
 ```
 
-A API fica em:
-
-```text
-http://localhost:8000
-```
-
 Abra:
 
-- demo local: `http://localhost:8000/demo`;
-- OpenAPI/Swagger: `http://localhost:8000/docs`;
-- health: `http://localhost:8000/health`.
+- demo: `http://localhost:8000/demo`;
+- Swagger: `http://localhost:8000/docs`;
+- health: `http://localhost:8000/health`;
+- estado de RPI: `http://localhost:8000/v1/rpi/status`.
 
-## 2. Carregue a fixture de demonstracao
-
-A fixture e pequena e serve apenas para validar o fluxo.
+## 2. Carregue a fixture
 
 ```bash
 curl -X POST "http://localhost:8000/v1/admin/ingest/xml?path=fixtures/rpi-layout-sample.xml"
 ```
 
-Depois pesquise `MARCA EXEMPLO` na demo com a classe Nice `39`.
+Depois pesquise `MARCA EXEMPLO` com classe Nice `39`.
 
 ## 3. Compare sinais
 
@@ -38,51 +31,73 @@ curl -X POST http://localhost:8000/v1/trademarks/compare \
   -d '{"left":{"name":"GENTILL MOB","nice_classes":[39]},"right":{"name":"GENTIL MOB","nice_classes":[39]}}'
 ```
 
-O score e **similaridade computacional**, nunca probabilidade de deferimento.
+O score e similaridade computacional, nao probabilidade juridica.
 
-## 4. RPI oficial pela CLI
-
-Para trabalhar com uma publicacao oficial:
+## 4. Instale a CLI
 
 ```bash
 python -m venv .venv
 # Windows: .venv\Scripts\activate
 # Linux/macOS: source .venv/bin/activate
 pip install -e ".[test,mcp]"
-
-python -m app.cli download-rpi 2908
-python -m app.cli ingest-rpi 2908
 ```
 
-A CLI:
+## 5. Estabeleca o baseline de ingestao
 
-1. usa a URL oficial `https://revistas.inpi.gov.br/txt/RM<numero>.zip`;
-2. grava em `raw/rpi/<numero>/`;
-3. calcula SHA-256 do ZIP e XML;
-4. valida se o numero interno da revista corresponde ao solicitado;
-5. evita extracao de caminhos arbitrarios do ZIP;
-6. reaproveita o ZIP local por padrao;
-7. ingere usando o mesmo parser versionado da API.
+```bash
+python -m app.cli ingest-rpi 2908
+python -m app.cli rpi-status
+```
 
-`raw/` e ignorado pelo Git.
+Depois, para acompanhar as proximas RPIs:
 
-## Banco persistente criado antes da 0.2.1
+```bash
+python -m app.cli ingest-next --max-count 4
+```
 
-Se voce ja possui um PostgreSQL persistente criado por uma versao anterior, aplique a migration antes de iniciar a API 0.2.1:
+A CLI para na primeira RPI ainda indisponivel e nao avanca `last_ingested_rpi` indevidamente.
+
+Um intervalo explicito:
+
+```bash
+python -m app.cli ingest-range 2908 2912
+```
+
+Apenas detectar novas publicacoes:
+
+```bash
+python -m app.cli discover-rpi --after 2908 --max-scan 4
+```
+
+## Banco persistente existente
+
+Se o banco veio de uma versao anterior a 0.2.1:
 
 ```bash
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/002_specification_hash.sql
 ```
 
-Instalacoes novas nao precisam desse passo manual.
+Para adicionar o estado incremental da 0.3.0:
 
-Detalhes: [migration-002.md](migration-002.md).
+```bash
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/003_rpi_ingestion_state.sql
+```
+
+Instalacoes novas nao precisam aplicar as migrations manualmente.
+
+## Monitor automatico
+
+O workflow `.github/workflows/rpi-monitor.yml` detecta novas RPIs em dias uteis e abre issues com label `rpi-monitor`.
+
+Ele nao baixa o ZIP completo nem ingere automaticamente.
+
+Detalhes: [rpi-monitoring.md](rpi-monitoring.md).
 
 ## Limites
 
-Esta release continua sendo DEV:
+Esta release continua DEV:
 
 - o endpoint administrativo de ingestao nao deve ser exposto publicamente;
 - nao ha autenticacao ou multi-tenant;
-- a base local depende das RPIs que voce ingeriu;
+- o monitor remoto nao substitui a validacao SHA-256 durante a ingestao;
 - resultados nao substituem pesquisa juridica ou consulta oficial ao INPI.

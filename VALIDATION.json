@@ -1,58 +1,40 @@
 {
-  "version": "0.2.1",
+  "version": "0.3.0",
   "release": "community-v1",
   "validated_at": "2026-10-04",
   "environment": "DEV",
-  "release_commit": "50d932f7231f032a5d842a129b13b78f3f486874",
-  "pull_request": 1,
-  "remote_ci": {
-    "status": "PASS",
-    "pr_run_id": 37182703042,
+  "published_baseline": {
+    "version": "0.2.1",
+    "release_commit": "50d932f7231f032a5d842a129b13b78f3f486874",
     "main_run_id": 37182747943,
-    "jobs": {
-      "python_3_11": "PASS",
-      "python_3_13": "PASS",
-      "postgres_migration_002": "PASS",
-      "docker_compose_quickstart": "PASS"
+    "status": "PASS"
+  },
+  "candidate_0_3_0": {
+    "remote_ci": "PENDING",
+    "gates": {
+      "INCREMENTAL_STATE_UNIT_TESTS": "PENDING_REMOTE_CI",
+      "RPI_PROBE_UNIT_TESTS": "PENDING_REMOTE_CI",
+      "POSTGRES_MIGRATION_003": "PENDING_REMOTE_CI",
+      "DOCKER_COMPOSE_QUICKSTART": "PENDING_REMOTE_CI",
+      "MONITOR_WORKFLOW_DISPATCH": "NOT_RUN"
+    },
+    "features": {
+      "last_ingested_rpi": true,
+      "last_checked_rpi": true,
+      "ingestion_run_history": true,
+      "ingest_range": true,
+      "ingest_next": true,
+      "safe_rpi_probe": true,
+      "scheduled_issue_monitor": true,
+      "automatic_database_ingestion_from_monitor": false
     }
   },
-  "parser_version": "rpi-marcas-xml-0.2.1",
-  "tests_local": {
+  "rpi_2908_e2e_baseline": {
     "status": "PASS",
-    "count": 11,
-    "runtime": "Python 3.13 container"
-  },
-  "rpi_2908_e2e": {
-    "status": "PASS",
-    "environment": "DEV_DISPOSABLE_POSTGRES",
-    "xml_bytes": 61214732,
-    "xml_sha256": "23392bfc9e03c52c9fa8befc9be21e4f3ee50993dfe21edb876cbbd62706089d",
     "processes": 39858,
     "nice_classes": 34736,
     "events": 40201,
-    "first_ingestion_seconds": 145.227,
-    "second_ingestion_seconds": 64.94,
-    "second_ingestion_new_events": 0,
-    "counts_unchanged_on_second_ingestion": true,
-    "api_real_data": "PASS",
-    "mcp_real_data": "PASS_IN_PROCESS"
-  },
-  "gates": {
-    "RPI_2908_FULL_REAL_INGESTION": "PASS",
-    "IDEMPOTENCY_REAL_DATA": "PASS",
-    "API_REAL_DATA": "PASS",
-    "MCP_REAL_DATA": "PASS_IN_PROCESS",
-    "MIGRATION_002_POSTGRES": "PASS",
-    "DOCKER_COMPOSE_QUICKSTART": "PASS"
-  },
-  "official_rpi_2908_source": {
-    "download_status": "PASS",
-    "source_url": "https://revistas.inpi.gov.br/txt/RM2908.zip",
-    "zip_bytes": 10726796,
-    "zip_sha256": "63794e53ee247d0c70fb9b77f98ed45e2602bb0e5166e347c00d938efa1ff400",
-    "xml_bytes": 61214732,
-    "xml_sha256": "23392bfc9e03c52c9fa8befc9be21e4f3ee50993dfe21edb876cbbd62706089d",
-    "full_real_ingestion_status": "PASS_DEV_DISPOSABLE_POSTGRES"
+    "xml_sha256": "23392bfc9e03c52c9fa8befc9be21e4f3ee50993dfe21edb876cbbd62706089d"
   },
   "production_readiness": "NOT_CLAIMED"
 }

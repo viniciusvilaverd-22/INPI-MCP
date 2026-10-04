@@ -13,6 +13,7 @@ def test_health_and_search():
     health = client.get("/health")
     assert health.status_code == 200
     assert health.json()["release"] == "community-v1"
+    assert health.json()["version"] == "0.3.0"
     response = client.post(
         "/v1/trademarks/search",
         json={"query": "MARCA EXEMPLO", "nice_classes": [39], "limit": 10},
@@ -33,3 +34,14 @@ def test_root_and_demo_are_available():
     assert demo.status_code == 200
     assert "INPI MCP" in demo.text
     assert "parecer juridico" in demo.text
+
+
+def test_rpi_status_endpoint_is_read_only_and_available():
+    init_db()
+    client = TestClient(app)
+    response = client.get("/v1/rpi/status")
+    assert response.status_code == 200
+    data = response.json()
+    assert "last_ingested_rpi" in data
+    assert "last_checked_rpi" in data
+    assert isinstance(data["recent_runs"], list)
