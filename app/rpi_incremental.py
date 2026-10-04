@@ -72,7 +72,7 @@ def ingest_one_rpi(
     run = session.scalar(
         select(RPIIngestionRun).where(RPIIngestionRun.rpi_number == number)
     )
-    if run is not None and run.status == "completed":
+    if run is not None and run.status == "completed" and not force_download:
         state.last_ingested_rpi = _max_value(state.last_ingested_rpi, number)
         state.last_checked_rpi = _max_value(state.last_checked_rpi, number)
         session.commit()
