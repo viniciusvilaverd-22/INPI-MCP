@@ -69,7 +69,20 @@ jobs:
       - name: Consultar indice oficial da RPI
         id: index
         run: |
-          python -m app.cli latest-rpi --timeout 30 > /tmp/rpi-latest.json
+          set +e
+          python -m app.cli latest-rpi --timeout 30 > /tmp/rpi-latest.json 2> /tmp/rpi-latest.err
+          rc=$?
+          set -e
+
+          if [ "$rc" -ne 0 ]; then
+            cat /tmp/rpi-latest.err >&2
+            echo "::warning::Fonte oficial do INPI indisponivel para este runner; nenhum estado de publicacao foi inferido."
+            echo "source_status=unavailable" >> "$GITHUB_OUTPUT"
+            echo "numbers=" >> "$GITHUB_OUTPUT"
+            echo "### RPI monitor: fonte oficial indisponivel para o runner" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
           cat /tmp/rpi-latest.json
           python - <<'PY'
           import json
@@ -80,13 +93,14 @@ jobs:
           baseline = int("${{ steps.baseline.outputs.after }}")
           numbers = " ".join(str(n) for n in range(baseline + 1, latest + 1)) if latest > baseline else ""
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write("source_status=ok\n")
               out.write(f"latest={latest}\n")
               out.write(f"numbers={numbers}\n")
           print(f"RPI_OFFICIAL_LATEST={latest}")
           PY
 
       - name: Abrir issues para novas RPIs
-        if: steps.index.outputs.numbers != ''
+        if: steps.index.outputs.source_status == 'ok' && steps.index.outputs.numbers != ''
         env:
           GH_TOKEN: ${{ github.token }}
           NUMBERS: ${{ steps.index.outputs.numbers }}
