@@ -179,3 +179,23 @@ def test_fetch_latest_rpi_uses_official_index(monkeypatch):
     assert latest.rpi_number == 2908
     assert latest.rpi_date == "2026-09-29"
     assert latest.source_url == rpi_source.OFFICIAL_RPI_INDEX_URL
+
+
+def test_fetch_latest_rpi_retries_transient_503(monkeypatch):
+    calls = []
+
+    def fake_urlopen(request, timeout):
+        calls.append(request.headers.get("User-agent"))
+        if len(calls) < 3:
+            raise urllib.error.HTTPError(request.full_url, 503, "Service Unavailable", {}, None)
+        return _FakeIndexResponse(
+            b"<table><tr><td>2908</td><td>2026-09-29</td></tr></table>"
+        )
+
+    monkeypatch.setattr(rpi_source.urllib.request, "urlopen", fake_urlopen)
+    monkeypatch.setattr(rpi_source.time, "sleep", lambda seconds: None)
+
+    latest = fetch_latest_rpi_from_index(timeout=10, attempts=3)
+    assert latest.rpi_number == 2908
+    assert len(calls) == 3
+    assert all("Mozilla/5.0" in value for value in calls)
