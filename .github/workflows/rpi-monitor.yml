@@ -65,32 +65,35 @@ jobs:
           print(f"RPI_MONITOR_AFTER={baseline}")
           PY
 
-      - name: Consultar fonte oficial
-        id: probe
+      - name: Consultar indice oficial da RPI
+        id: index
         run: |
-          python -m app.cli discover-rpi --after "${{ steps.baseline.outputs.after }}" --max-scan 4 --timeout 30 > /tmp/rpi-probe.json
-          cat /tmp/rpi-probe.json
+          python -m app.cli latest-rpi --timeout 30 > /tmp/rpi-latest.json
+          cat /tmp/rpi-latest.json
           python - <<'PY'
           import json
           import os
 
-          result = json.load(open("/tmp/rpi-probe.json", encoding="utf-8"))
-          numbers = " ".join(str(n) for n in result["available_rpis"])
+          result = json.load(open("/tmp/rpi-latest.json", encoding="utf-8"))
+          latest = int(result["latest"]["rpi_number"])
+          baseline = int("${{ steps.baseline.outputs.after }}")
+          numbers = " ".join(str(n) for n in range(baseline + 1, latest + 1)) if latest > baseline else ""
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"latest={latest}\n")
               out.write(f"numbers={numbers}\n")
-              out.write(f"first_missing={result.get('first_missing_rpi') or ''}\n")
+          print(f"RPI_OFFICIAL_LATEST={latest}")
           PY
 
       - name: Abrir issues para novas RPIs
-        if: steps.probe.outputs.numbers != ''
+        if: steps.index.outputs.numbers != ''
         env:
           GH_TOKEN: ${{ github.token }}
-          NUMBERS: ${{ steps.probe.outputs.numbers }}
+          NUMBERS: ${{ steps.index.outputs.numbers }}
         run: |
           for number in $NUMBERS; do
             title="Nova RPI detectada: $number"
             existing="$(gh issue list --state all --search "$title in:title" --json number --jq 'length')"
             if [ "$existing" = "0" ]; then
-              gh issue create --title "$title" --label rpi-monitor --body "A automacao do INPI MCP detectou a RPI oficial $number na fonte oficial. Esta rotina apenas detecta a publicacao: nao faz ingestao automatica nem altera banco. Para ingerir em ambiente autorizado use: python -m app.cli ingest-next --max-count 1. Alternativa explicita: python -m app.cli ingest-rpi $number."
+              gh issue create --title "$title" --label rpi-monitor --body "A automacao do INPI MCP detectou a RPI oficial $number no indice oficial. Esta rotina apenas detecta a publicacao: nao faz ingestao automatica nem altera banco. Para ingerir em ambiente autorizado use: python -m app.cli ingest-next --max-count 1. Alternativa explicita: python -m app.cli ingest-rpi $number."
             fi
           done
