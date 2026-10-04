@@ -1,35 +1,52 @@
-# Checklist de publicação pública
+# Checklist de publicacao publica
 
-Este documento separa **preparação local** de **publicação efetiva**.
+Este documento separa o **baseline ja publicado** das alteracoes **Community v1 ainda locais**.
 
-## Estado atual
+## Baseline Portfolio v1 — concluido
 
-- [x] README público preparado
-- [x] Arquitetura pública documentada
-- [x] Ferramentas MCP documentadas
-- [x] Limitações e evidências documentadas
-- [x] `.gitignore` endurecido para não incluir runtime/evidências locais
-- [x] Política de segurança criada
-- [x] Diretrizes de contribuição criadas
-- [x] Licença restritiva de portfólio criada
-- [x] Workflow de CI preparado
-- [x] Conjunto exato do primeiro commit definido
-- [x] Manifesto público machine-readable criado
-- [ ] Repositório Git inicializado
-- [ ] `git status` confrontado com o manifesto
-- [ ] Primeiro commit
-- [ ] Repositório GitHub criado
-- [ ] Push executado
-- [ ] GitHub Actions executado com PASS
-- [ ] GitHub Security / vulnerability reporting configurado
-- [ ] Descrição e tópicos do repositório configurados
-- [ ] Screenshot ou GIF de demonstração adicionado
+- [x] README publico preparado
+- [x] Arquitetura e ferramentas MCP documentadas
+- [x] `.gitignore` endurecido
+- [x] `SECURITY.md` e `CONTRIBUTING.md`
+- [x] licenca restritiva de portfolio
+- [x] workflow de CI preparado
+- [x] Git local inicializado
+- [x] conjunto do primeiro commit confrontado com o manifesto
+- [x] primeiro commit criado
+- [x] repositorio publico criado no GitHub
+- [x] `origin` configurado
+- [x] branch `main` publicada
 
-Os itens não marcados exigem uma etapa posterior e não foram executados nesta preparação.
+Baseline:
 
-## Arquivos que não devem ser publicados
+```text
+repository = viniciusvilaverd-22/INPI-MCP
+branch     = main
+commit     = bec37a05d5ad383acf1e30fef35029cb1a8c18af
+message    = feat: establish INPI MCP portfolio release v1
+```
 
-Por padrão, não incluir:
+## Community v1 — estado local
+
+- [x] CLI de RPI oficial
+- [x] demo web local
+- [x] quickstart
+- [x] documentacao comunitaria
+- [x] exemplo oficial RPI 2908
+- [x] testes de fonte/ZIP/path traversal
+- [x] 10 testes PASS
+- [x] CLI RPI 2908 real PASS em modo inspect
+- [x] API/demo smoke PASS
+- [ ] commit da Community v1
+- [ ] push da Community v1
+- [ ] CI remota da Community v1 confirmada
+- [ ] screenshot/GIF publico da demo
+
+As alteracoes Community v1 **nao foram publicadas** nesta etapa.
+
+## Arquivos que nao devem ser publicados
+
+Por padrao, nao incluir:
 
 - `.env`;
 - `.venv/`;
@@ -38,42 +55,23 @@ Por padrão, não incluir:
 - `raw/`;
 - `vault/`;
 - logs e snapshots locais;
-- saídas de diagnóstico;
-- resultados temporários de testes;
-- scripts one-off vinculados a caminhos absolutos da máquina local de desenvolvimento.
+- dependencias temporarias de validacao;
+- resultados temporarios de testes;
+- scripts one-off vinculados ao ambiente local.
 
-A lista intencional do primeiro commit está em [first-commit-plan.md](first-commit-plan.md) e `PUBLIC_MANIFEST.json`.
+## Gate para publicar a Community v1
 
-## Conteúdo público recomendado
+Antes de qualquer novo commit/push:
 
-```text
-README.md
-LICENSE
-SECURITY.md
-CONTRIBUTING.md
-.gitignore
-.gitattributes
-.github/
-app/
-db/
-docs/
-examples/
-fixtures/
-tests/
-Dockerfile
-docker-compose.yml
-pyproject.toml
-.env.example
-install-dev.ps1
-VALIDATION.json
-PUBLIC_MANIFEST.json
-```
+1. revisar `git status --short --untracked-files=all`;
+2. confirmar que nenhum item ignorado aparece;
+3. revisar o diff da Community v1;
+4. confirmar que `VALIDATION.json` esta em PASS;
+5. criar commit somente com nova autorizacao;
+6. fazer push somente com nova autorizacao;
+7. verificar CI remota depois do push.
 
-## Descrição recomendada para o GitHub
-
-> Infraestrutura de inteligência de marcas com FastAPI, PostgreSQL e Model Context Protocol (MCP), com ingestão auditável e similaridade explicável.
-
-## Tópicos recomendados
+## Topicos recomendados
 
 ```text
 mcp
@@ -87,15 +85,3 @@ inpi
 similarity
 data-engineering
 ```
-
-## Gate antes da publicação
-
-Antes do primeiro `git add`, revisar a lista efetiva de arquivos e confirmar que nenhum arquivo ignorado já foi incorporado manualmente.
-
-Após a publicação, o primeiro gate remoto deve ser:
-
-```text
-GitHub Actions CI = PASS
-```
-
-Somente depois desse resultado deve-se adicionar um badge dinâmico de CI ao README.

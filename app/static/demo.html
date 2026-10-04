@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>INPI MCP — Demo comunitaria</title>
+<style>
+:root{font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color-scheme:dark;--bg:#111315;--panel:#1a1d20;--line:#34383d;--text:#f3f3ef;--muted:#b1b5b9;--accent:#d8b56a}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text)}
+main{max-width:1050px;margin:auto;padding:32px 20px 64px}
+header{margin-bottom:28px} h1{font-size:clamp(2rem,5vw,3.5rem);margin:.2rem 0} h2{margin-top:0}
+.badge{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:6px 10px;color:var(--accent);font-size:.85rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px}
+label{display:block;margin:12px 0 6px;color:var(--muted)}
+input{width:100%;padding:12px;border-radius:9px;border:1px solid var(--line);background:#0f1113;color:var(--text)}
+button{margin-top:14px;padding:11px 16px;border:0;border-radius:9px;background:var(--accent);color:#17120a;font-weight:700;cursor:pointer}
+button:disabled{opacity:.6;cursor:wait}
+.notice{border-left:3px solid var(--accent);padding:12px 14px;background:#17191b;color:var(--muted);margin:18px 0}
+.result{margin-top:16px}.row{border-top:1px solid var(--line);padding:12px 0}.score{font-variant-numeric:tabular-nums;color:var(--accent);font-weight:700}
+small,.muted{color:var(--muted)} code{color:#e6cf9a}
+a{color:var(--accent)}
+</style>
+</head>
+<body>
+<main>
+<header>
+<span class="badge">Community Release v1 · DEV local</span>
+<h1>INPI MCP</h1>
+<p class="muted">Pesquisa e comparacao computacional de marcas usando a API local do projeto.</p>
+</header>
+
+<div class="notice"><strong>Aviso:</strong> esta demo nao e uma ferramenta oficial do INPI e nao produz parecer juridico, disponibilidade de registro ou probabilidade de deferimento.</div>
+
+<div class="grid">
+<section class="card">
+<h2>Pesquisar marcas</h2>
+<form id="search-form">
+<label for="query">Nome ou sinal</label>
+<input id="query" value="MARCA EXEMPLO" required maxlength="250">
+<label for="classes">Classes Nice (separadas por virgula)</label>
+<input id="classes" value="39" inputmode="numeric">
+<button id="search-button">Pesquisar</button>
+</form>
+<div id="search-status" class="muted"></div>
+<div id="search-results" class="result"></div>
+</section>
+
+<section class="card">
+<h2>Comparar dois sinais</h2>
+<form id="compare-form">
+<label for="left">Sinal A</label>
+<input id="left" value="GENTILL MOB" required>
+<label for="right">Sinal B</label>
+<input id="right" value="GENTIL MOB" required>
+<label for="compare-classes">Classes Nice</label>
+<input id="compare-classes" value="39" inputmode="numeric">
+<button id="compare-button">Comparar</button>
+</form>
+<div id="compare-result" class="result"></div>
+</section>
+</div>
+
+<p class="muted" style="margin-top:24px">API interativa: <a href="/docs">/docs</a> · Health: <a href="/health">/health</a></p>
+</main>
+<script>
+const parseClasses = value => value.split(",").map(v=>Number(v.trim())).filter(Number.isInteger);
+const el = id => document.getElementById(id);
+
+function addText(parent, tag, text, className=""){
+  const node=document.createElement(tag); node.textContent=text; if(className) node.className=className; parent.appendChild(node); return node;
+}
+
+el("search-form").addEventListener("submit", async event => {
+  event.preventDefault();
+  const button=el("search-button"), target=el("search-results"), status=el("search-status");
+  target.replaceChildren(); status.textContent="Consultando API local…"; button.disabled=true;
+  try{
+    const response=await fetch("/v1/trademarks/search",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({query:el("query").value,nice_classes:parseClasses(el("classes").value),limit:20})});
+    if(!response.ok) throw new Error("HTTP "+response.status);
+    const data=await response.json(); status.textContent=data.results.length+" resultado(s)";
+    data.results.forEach(item=>{
+      const row=document.createElement("div"); row.className="row";
+      addText(row,"strong",item.mark_name || "(sem nome)");
+      addText(row,"div","Processo: "+item.process_number,"muted");
+      addText(row,"div","Similaridade: "+(item.similarity.overall*100).toFixed(1)+"%","score");
+      addText(row,"small",(item.similarity.reasons||[]).join(" · "));
+      target.appendChild(row);
+    });
+    if(!data.results.length) addText(target,"p","Nenhum candidato encontrado na base local.","muted");
+  }catch(error){status.textContent="Falha: "+error.message}
+  finally{button.disabled=false}
+});
+
+el("compare-form").addEventListener("submit", async event => {
+  event.preventDefault();
+  const target=el("compare-result"); target.replaceChildren();
+  try{
+    const classes=parseClasses(el("compare-classes").value);
+    const response=await fetch("/v1/trademarks/compare",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({left:{name:el("left").value,nice_classes:classes},right:{name:el("right").value,nice_classes:classes}})});
+    if(!response.ok) throw new Error("HTTP "+response.status);
+    const data=await response.json(), s=data.similarity;
+    addText(target,"div","Score geral: "+(s.overall*100).toFixed(1)+"%","score");
+    addText(target,"div","Lexical "+(s.lexical*100).toFixed(1)+"% · Fonetica "+(s.phonetic*100).toFixed(1)+"% · Tokens "+(s.token_structure*100).toFixed(1)+"%","muted");
+    addText(target,"small",(s.reasons||[]).join(" · "));
+  }catch(error){addText(target,"p","Falha: "+error.message,"muted")}
+});
+</script>
+</body>
+</html>

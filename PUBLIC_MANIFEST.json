@@ -1,7 +1,7 @@
 {
-  "schema_version": 1,
-  "release": "portfolio-v1",
-  "status": "PRE_COMMIT_GATE",
+  "schema_version": 2,
+  "release": "community-v1",
+  "status": "LOCAL_DEV_UNPUBLISHED",
   "generated_at": "2026-10-03",
   "include": [
     ".env.example",
@@ -43,9 +43,11 @@
   ],
   "constraints": {
     "git_initialized": true,
-    "commit_created": false,
-    "remote_configured": false,
-    "push_performed": false,
+    "baseline_commit_created": true,
+    "remote_configured": true,
+    "baseline_push_performed": true,
+    "community_changes_committed": false,
+    "community_changes_pushed": false,
     "production_touched": false
   }
 }

@@ -1,7 +1,7 @@
 [project]
 name = "inpi-mcp-mvp"
-version = "0.1.0"
-description = "MVP auditavel para pesquisa e monitoramento de marcas do INPI"
+version = "0.2.0"
+description = "Infraestrutura auditavel para pesquisa, comparacao e ingestao de marcas do INPI via API e MCP"
 requires-python = ">=3.11"
 dependencies = [
   "fastapi>=0.115",
@@ -13,6 +13,9 @@ dependencies = [
   "rapidfuzz>=3.9",
   "Unidecode>=1.3",
 ]
+
+[project.scripts]
+inpi-mcp = "app.cli:main"
 
 [project.optional-dependencies]
 mcp = ["mcp>=1,<2"]

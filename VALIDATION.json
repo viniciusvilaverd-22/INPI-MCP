@@ -1,24 +1,51 @@
 {
-  "version": "0.1.0",
-  "portfolio_release": "v1",
+  "version": "0.2.0",
+  "release": "community-v1",
   "validated_at": "2026-10-03",
   "environment": "DEV",
   "tests": {
     "status": "PASS",
-    "count": 5,
-    "evidence": "mcp1-validation-result.txt"
+    "count": 10,
+    "runtime": "Python 3.13 container",
+    "evidence_local": ".gentill/community-docker-v4-validation.txt"
   },
-  "api_smoke": {
+  "cli_rpi_2908": {
     "status": "PASS",
-    "evidence": "fix-api-validation.txt"
+    "command": "inspect-rpi",
+    "rpi_number": 2908,
+    "rpi_date": "29/09/2026",
+    "xml_bytes": 61214732,
+    "forced_download": false,
+    "evidence_local": ".gentill/community-docker-v4-validation.txt"
+  },
+  "api_demo_smoke": {
+    "status": "PASS",
+    "api_version": "0.2.0",
+    "release": "community-v1",
+    "demo_path": "/demo",
+    "evidence_local": ".gentill/community-docker-v4-validation.txt"
   },
   "mcp_runtime": {
-    "status": "PASS",
-    "evidence": "mcp1-validation-result.txt"
+    "status": "PASS_BASELINE",
+    "evidence": "mcp1-validation-result.txt",
+    "note": "As ferramentas MCP nao foram alteradas pela Community v1."
   },
-  "real_rpi_2908": {
-    "status": "NOT_CLAIMED",
-    "note": "A Portfolio Release v1 não declara a RPI 2908 real como ingerida. A fixture de testes não representa a publicação real completa."
+  "official_rpi_2908_source": {
+    "download_status": "PASS",
+    "source_url": "https://revistas.inpi.gov.br/txt/RM2908.zip",
+    "zip_bytes": 10726796,
+    "zip_sha256": "63794e53ee247d0c70fb9b77f98ed45e2602bb0e5166e347c00d938efa1ff400",
+    "xml_bytes": 61214732,
+    "xml_sha256": "23392bfc9e03c52c9fa8befc9be21e4f3ee50993dfe21edb876cbbd62706089d",
+    "full_real_ingestion_status": "NOT_CLAIMED"
+  },
+  "warnings": [
+    "StarletteDeprecationWarning no TestClient; nao bloqueou a suite.",
+    "A instalacao Python 3.14 do host apresentou falha propria de asyncio/pdb; a validacao canonica foi executada em container Python 3.13."
+  ],
+  "community_changes": {
+    "committed": false,
+    "pushed": false
   },
   "production_readiness": "NOT_CLAIMED"
 }
