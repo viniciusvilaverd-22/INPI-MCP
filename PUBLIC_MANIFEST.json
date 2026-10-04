@@ -1,29 +1,25 @@
 {
   "schema_version": 3,
   "release": "community-v1",
-  "status": "CANDIDATE_0_2_1",
+  "status": "PUBLISHED_0_2_1",
   "generated_at": "2026-10-04",
   "repository": "viniciusvilaverd-22/INPI-MCP",
-  "branch": "rpi2908-e2e-candidate",
-  "published_baseline_commit": "4aed2c879746de7bb6efac12b6c103491a95ac90",
-  "candidate": {
-    "version": "0.2.1",
-    "rpi_2908_e2e": "PASS",
-    "tests_local": 11,
-    "remote_ci": "PENDING",
-    "production_touched": false
+  "branch": "main",
+  "release_commit": "50d932f7231f032a5d842a129b13b78f3f486874",
+  "remote_ci": {
+    "status": "PASS",
+    "run_id": 37182747943
   },
+  "version": "0.2.1",
+  "rpi_2908_e2e": "PASS",
+  "tests_local": 11,
+  "migration_002": "PASS",
+  "docker_compose_quickstart": "PASS",
+  "production_touched": false,
   "include": [
-    ".env.example",
-    ".gitattributes",
-    ".gitignore",
     ".github/workflows/ci.yml",
-    "CONTRIBUTING.md",
     "Dockerfile",
-    "LICENSE",
-    "PUBLIC_MANIFEST.json",
     "README.md",
-    "SECURITY.md",
     "VALIDATION.json",
     "app/",
     "db/001_init.sql",
@@ -31,25 +27,17 @@
     "docker-compose.yml",
     "docs/",
     "examples/",
-    "fixtures/rpi-layout-sample.xml",
-    "install-dev.ps1",
+    "fixtures/",
     "pyproject.toml",
     "tests/"
   ],
   "exclude": [
     ".env",
     ".venv/",
-    ".pytest_cache/",
-    "__pycache__/",
     ".gentill/",
-    ".gentill-audit.jsonl",
-    ".gentill-audit.jsonl.lock",
-    ".docker-temp/",
     "raw/",
     "vault/",
-    "local logs",
-    "diagnostic outputs",
-    "validation snapshots",
-    "one-off local ingestion/validation scripts"
+    "logs",
+    "local validation evidence"
   ]
 }

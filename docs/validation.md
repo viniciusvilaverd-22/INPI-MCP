@@ -1,17 +1,25 @@
 # Estado de validacao — INPI MCP 0.2.1
 
 Data: **04/10/2026**  
-Ambiente: **DEV**
+Ambiente: **DEV**  
+Status: **PUBLICADO / CI PASS**
 
-## Baseline publicado
-
-A Community v1 anterior permanece registrada pelos commits:
+## Publicacao
 
 ```text
-release commit = 99ca8569426a38d8426f04b12891a2b25b7031c4
-CI fix commit  = d543ef2e914fab2e3d7e6b6b7d7ab8c18942ebf2
-GitHub Actions = PASS
-run             = 37171833323
+release commit = 50d932f7231f032a5d842a129b13b78f3f486874
+pull request   = #1
+PR CI run      = 37182703042
+main CI run    = 37182747943
+```
+
+Todos os jobs da CI na `main` passaram:
+
+```text
+Python 3.11                PASS
+Python 3.13                PASS
+PostgreSQL migration 002   PASS
+Docker Compose quickstart  PASS
 ```
 
 ## Suite local apos o E2E
@@ -36,13 +44,15 @@ segunda ingestao    64.940 s
 novos eventos       0
 ```
 
-Gates locais:
+Gates:
 
 ```text
 RPI_2908_FULL_REAL_INGESTION = PASS
 IDEMPOTENCY_REAL_DATA        = PASS
 API_REAL_DATA                = PASS
 MCP_REAL_DATA                = PASS_IN_PROCESS
+MIGRATION_002_POSTGRES       = PASS
+DOCKER_COMPOSE_QUICKSTART    = PASS
 ```
 
 SHA-256 do XML ingerido:
@@ -53,43 +63,31 @@ SHA-256 do XML ingerido:
 
 O MCP validou registro e execucao in-process de `search_trademark`, `compare_trademark` e `get_trademark`. O transporte stdio externo nao fez parte deste E2E.
 
-## Defeitos revelados
+## Migration 002
 
-### Layout oficial de classes Nice
+A CI criou um schema legado em PostgreSQL 16, preservou dados preexistentes, aplicou `db/002_specification_hash.sql`, inseriu uma especificacao longa e reaplicou a migration para provar idempotencia.
 
-A RPI real usa `lista-classe-nice > classe-nice`. O parser 0.2.1 aceita esse layout e preserva o layout direto usado pelas fixtures historicas.
-
-### Especificacoes Nice longas
-
-Uma especificacao real ultrapassou 8 mil caracteres e excedeu o limite de linha de um indice B-tree quando o texto integral fazia parte da restricao UNIQUE.
-
-A versao 0.2.1 preserva `specification` integral, adiciona `specification_hash` SHA-256 e usa:
+A nova chave e:
 
 ```text
 trademark_id + nice_class + specification_hash
 ```
 
-como chave de unicidade.
-
-## Migration 002
-
-`db/002_specification_hash.sql`:
-
-- habilita `pgcrypto`;
-- adiciona a coluna se ausente;
-- faz backfill SHA-256;
-- recusa grupos duplicados antes de mudar a restricao;
-- remove `uq_tm_class_spec`;
-- cria `uq_tm_class_spec_hash`;
-- e desenhada para reaplicacao idempotente.
-
-A CI candidata cria um PostgreSQL 16 com schema legado, dados preexistentes, especificacao longa e repeticao da migration.
+A migration nao exclui duplicatas automaticamente; se detectar grupos equivalentes, aborta para revisao manual.
 
 ## Docker quickstart
 
-O Dockerfile foi corrigido para copiar `app/` antes de `pip install .`.
+A CI executou:
 
-A CI candidata tambem executa `docker compose up -d --build`, verifica `/health`, ingere a fixture, pesquisa a marca e executa `docker compose down -v`.
+```text
+docker compose up -d --build
+GET /health
+ingestao da fixture
+busca MARCA EXEMPLO
+docker compose down -v
+```
+
+Resultado: **PASS**.
 
 ## Producao
 

@@ -1,52 +1,49 @@
 # Checklist de publicacao publica
 
-Este documento separa o **baseline ja publicado** da **Community v1 publicada**.
+## Portfolio v1 — concluido
 
-## Baseline Portfolio v1 — concluido
+- [x] repositorio publico criado;
+- [x] branch `main` publicada;
+- [x] README, seguranca e contribuicao documentados;
+- [x] CI inicial configurada.
 
-- [x] README publico preparado
-- [x] Arquitetura e ferramentas MCP documentadas
-- [x] `.gitignore` endurecido
-- [x] `SECURITY.md` e `CONTRIBUTING.md`
-- [x] licenca restritiva de portfolio
-- [x] workflow de CI preparado
-- [x] Git local inicializado
-- [x] conjunto do primeiro commit confrontado com o manifesto
-- [x] primeiro commit criado
-- [x] repositorio publico criado no GitHub
-- [x] `origin` configurado
-- [x] branch `main` publicada
-
-Baseline:
+Baseline inicial:
 
 ```text
-repository = viniciusvilaverd-22/INPI-MCP
-branch     = main
-commit     = bec37a05d5ad383acf1e30fef35029cb1a8c18af
-message    = feat: establish INPI MCP portfolio release v1
+bec37a05d5ad383acf1e30fef35029cb1a8c18af
 ```
 
-## Community v1 — publicada
+## Community v1 — concluida
 
-- [x] CLI de RPI oficial
-- [x] demo web local
-- [x] quickstart
-- [x] documentacao comunitaria
-- [x] exemplo oficial RPI 2908
-- [x] testes de fonte/ZIP/path traversal
-- [x] 10 testes PASS
-- [x] CLI RPI 2908 real PASS em modo inspect
-- [x] API/demo smoke PASS
-- [x] commit da Community v1
-- [x] push da Community v1
-- [x] CI remota da Community v1 confirmada
-- [ ] screenshot/GIF publico da demo
+- [x] CLI de RPI oficial;
+- [x] demo web local;
+- [x] quickstart;
+- [x] ferramentas MCP;
+- [x] CI Python 3.11/3.13.
 
-Release commit: `99ca8569426a38d8426f04b12891a2b25b7031c4`.
+## INPI MCP 0.2.1 — publicado
 
-CI fix commit: `d543ef2e914fab2e3d7e6b6b7d7ab8c18942ebf2`.
+- [x] RPI 2908 real E2E;
+- [x] 39.858 processos ingeridos;
+- [x] 34.736 classes Nice;
+- [x] 40.201 eventos;
+- [x] segunda ingestao com 0 novos eventos;
+- [x] API com dados reais;
+- [x] MCP com dados reais in-process;
+- [x] parser `rpi-marcas-xml-0.2.1`;
+- [x] migration `002_specification_hash.sql`;
+- [x] upgrade de schema legado validado em PostgreSQL 16;
+- [x] especificacao Nice longa validada;
+- [x] reaplicacao idempotente da migration;
+- [x] Docker Compose quickstart validado;
+- [x] PR #1 validado e mergeado;
+- [x] CI da `main` confirmada.
 
-GitHub Actions: **PASS** — run `37171833323`.
+```text
+release commit = 50d932f7231f032a5d842a129b13b78f3f486874
+main CI run    = 37182747943
+status         = PASS
+```
 
 ## Arquivos que nao devem ser publicados
 
@@ -59,27 +56,8 @@ Por padrao, nao incluir:
 - `raw/`;
 - `vault/`;
 - logs e snapshots locais;
-- dependencias temporarias de validacao;
-- resultados temporarios de testes;
-- scripts one-off vinculados ao ambiente local.
+- resultados temporarios de testes.
 
-## Gate pos-publicacao
+## Proximo gate tecnico
 
-1. manter `raw/` e evidencias locais fora do repositorio;
-2. nao declarar ingestao real completa da RPI 2908 sem recibo conclusivo;
-3. nao declarar production-ready sem hardening de autenticacao, isolamento e observabilidade.
-
-## Topicos recomendados
-
-```text
-mcp
-model-context-protocol
-ai-agents
-python
-fastapi
-postgresql
-trademarks
-inpi
-similarity
-data-engineering
-```
+A proxima evolucao deve ser ingestao incremental de multiplas RPIs e monitoramento de novas publicacoes. Producao continua fora do escopo ate existir hardening de autenticacao, isolamento e observabilidade.
