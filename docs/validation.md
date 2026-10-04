@@ -1,98 +1,95 @@
-# Estado de validacao — Community Release v1
+# Estado de validacao — INPI MCP 0.2.1
 
-Data: **03/10/2026**
+Data: **04/10/2026**  
 Ambiente: **DEV**
 
-## Resultado fresco
+## Baseline publicado
 
-A validacao canonica da Community v1 foi executada em container Python 3.13 com o workspace local montado em modo de teste.
-
-Resultado:
+A Community v1 anterior permanece registrada pelos commits:
 
 ```text
-10 passed, 1 warning in 0.86s
+release commit = 99ca8569426a38d8426f04b12891a2b25b7031c4
+CI fix commit  = d543ef2e914fab2e3d7e6b6b7d7ab8c18942ebf2
+GitHub Actions = PASS
+run             = 37171833323
 ```
 
-A advertencia foi uma `StarletteDeprecationWarning` do `TestClient` e nao bloqueou a suite.
-
-## CLI + RPI 2908 real
-
-A CLI foi executada contra o XML oficial ja existente no workspace, **sem novo download**:
+## Suite local apos o E2E
 
 ```text
-rpi_number = 2908
-rpi_date   = 29/09/2026
-xml_bytes  = 61214732
+11 passed, 1 warning in 0.83s
 ```
 
-Resultado: **PASS**.
+## RPI 2908 — E2E real
 
-Esse teste valida o comando `inspect-rpi` sobre o artefato real e nao deve ser confundido com prova de ingestao completa da revista.
-
-## API e demo
-
-Smoke local:
+A RPI oficial 2908 foi ingerida em PostgreSQL 16 descartavel, sem novo download e sem tocar em producao.
 
 ```text
-API_DEMO_SMOKE=PASS
-{"status":"ok","version":"0.2.0","release":"community-v1"}
+RPI                2908
+data               29/09/2026
+processos          39.858
+classes Nice       34.736
+eventos            40.201
+parser             rpi-marcas-xml-0.2.1
+primeira ingestao  145.227 s
+segunda ingestao    64.940 s
+novos eventos       0
 ```
 
-Validado:
-
-- `GET /health` = 200;
-- release reportada = `community-v1`;
-- versao = `0.2.0`;
-- `GET /demo` = 200;
-- pagina da demo contem o identificador `INPI MCP`.
-
-## RPI 2908 — proveniencia oficial
-
-Evidencia historica preservada e reconfirmada localmente:
+Gates locais:
 
 ```text
-SOURCE_URL=https://revistas.inpi.gov.br/txt/RM2908.zip
-ZIP_BYTES=10726796
-ZIP_SHA256=63794e53ee247d0c70fb9b77f98ed45e2602bb0e5166e347c00d938efa1ff400
-XML_BYTES=61214732
-XML_SHA256=23392bfc9e03c52c9fa8befc9be21e4f3ee50993dfe21edb876cbbd62706089d
+RPI_2908_FULL_REAL_INGESTION = PASS
+IDEMPOTENCY_REAL_DATA        = PASS
+API_REAL_DATA                = PASS
+MCP_REAL_DATA                = PASS_IN_PROCESS
 ```
 
-Interpretacao correta:
+SHA-256 do XML ingerido:
 
-- **download oficial da RPI 2908: PASS**;
-- **integridade ZIP/XML por SHA-256: PASS**;
-- **CLI sobre XML real: PASS**;
-- **ingestao completa real da RPI 2908: ainda nao declarada como PASS**.
+```text
+23392bfc9e03c52c9fa8befc9be21e4f3ee50993dfe21edb876cbbd62706089d
+```
 
-A missao historica de ingestao falhou antes dessa etapa por um problema no runner PowerShell/Docker. A Community v1 substitui essa dependencia por uma CLI Python deterministica, mas esta validacao nao executou `ingest-rpi 2908` para evitar uma mutacao de dados fora do escopo do smoke autorizado.
+O MCP validou registro e execucao in-process de `search_trademark`, `compare_trademark` e `get_trademark`. O transporte stdio externo nao fez parte deste E2E.
 
-## Cobertura Community v1
+## Defeitos revelados
 
-Os 10 testes cobrem:
+### Layout oficial de classes Nice
 
-- health e busca via API;
-- disponibilidade da demo;
-- ingestao XML;
-- idempotencia de eventos;
-- normalizacao;
-- similaridade;
-- URL oficial de RPI;
-- extracao segura de ZIP;
-- validacao do numero interno da revista;
-- defesa contra path traversal.
+A RPI real usa `lista-classe-nice > classe-nice`. O parser 0.2.1 aceita esse layout e preserva o layout direto usado pelas fixtures historicas.
 
-## MCP
+### Especificacoes Nice longas
 
-O runtime MCP da Portfolio v1 permanece com evidencia **PASS**. As tres ferramentas atuais nao foram alteradas pela Community v1:
+Uma especificacao real ultrapassou 8 mil caracteres e excedeu o limite de linha de um indice B-tree quando o texto integral fazia parte da restricao UNIQUE.
 
-- `search_trademark`;
-- `compare_trademark`;
-- `get_trademark`.
+A versao 0.2.1 preserva `specification` integral, adiciona `specification_hash` SHA-256 e usa:
 
-## Observacao sobre o host Windows
+```text
+trademark_id + nice_class + specification_hash
+```
 
-A instalacao local Python 3.14 do Windows apresentou um erro interno do proprio `asyncio/pdb` ao iniciar pytest. Nenhuma correcao de sistema foi feita. A validacao canonica foi executada em container Python 3.13, que e uma versao suportada pelo projeto.
+como chave de unicidade.
+
+## Migration 002
+
+`db/002_specification_hash.sql`:
+
+- habilita `pgcrypto`;
+- adiciona a coluna se ausente;
+- faz backfill SHA-256;
+- recusa grupos duplicados antes de mudar a restricao;
+- remove `uq_tm_class_spec`;
+- cria `uq_tm_class_spec_hash`;
+- e desenhada para reaplicacao idempotente.
+
+A CI candidata cria um PostgreSQL 16 com schema legado, dados preexistentes, especificacao longa e repeticao da migration.
+
+## Docker quickstart
+
+O Dockerfile foi corrigido para copiar `app/` antes de `pip install .`.
+
+A CI candidata tambem executa `docker compose up -d --build`, verifica `/health`, ingere a fixture, pesquisa a marca e executa `docker compose down -v`.
 
 ## Producao
 
@@ -104,5 +101,3 @@ Continua **nao declarado**:
 - endpoint administrativo seguro para Internet;
 - monitoramento recorrente operacional;
 - billing operacional.
-
-As alteracoes Community v1 permanecem **locais, sem commit e sem push**.

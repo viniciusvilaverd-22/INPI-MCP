@@ -66,6 +66,18 @@ A CLI:
 
 `raw/` e ignorado pelo Git.
 
+## Banco persistente criado antes da 0.2.1
+
+Se voce ja possui um PostgreSQL persistente criado por uma versao anterior, aplique a migration antes de iniciar a API 0.2.1:
+
+```bash
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/002_specification_hash.sql
+```
+
+Instalacoes novas nao precisam desse passo manual.
+
+Detalhes: [migration-002.md](migration-002.md).
+
 ## Limites
 
 Esta release continua sendo DEV:

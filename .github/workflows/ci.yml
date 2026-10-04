@@ -41,3 +41,72 @@ jobs:
 
       - name: Smoke do runtime MCP
         run: python -c "from app.mcp_server import mcp; print(type(mcp).__name__)"
+
+  postgres-migration:
+    name: PostgreSQL migration 002
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: inpi_migration
+          POSTGRES_USER: inpi
+          POSTGRES_PASSWORD: inpi
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U inpi -d inpi_migration"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Criar schema legado
+        run: |
+          docker run --rm --network host -e PGPASSWORD=inpi -v "$PWD:/src:ro" postgres:16             psql -h 127.0.0.1 -U inpi -d inpi_migration -f /src/tests/postgres/legacy_schema.sql
+
+      - name: Aplicar migration 002
+        run: |
+          docker run --rm --network host -e PGPASSWORD=inpi -v "$PWD:/src:ro" postgres:16             psql -h 127.0.0.1 -U inpi -d inpi_migration -v ON_ERROR_STOP=1 -f /src/db/002_specification_hash.sql
+
+      - name: Validar backfill, indice hash e especificacao longa
+        run: |
+          docker run --rm --network host -e PGPASSWORD=inpi -v "$PWD:/src:ro" postgres:16             psql -h 127.0.0.1 -U inpi -d inpi_migration -f /src/tests/postgres/validate_002.sql
+
+      - name: Provar idempotencia da migration
+        run: |
+          docker run --rm --network host -e PGPASSWORD=inpi -v "$PWD:/src:ro" postgres:16             psql -h 127.0.0.1 -U inpi -d inpi_migration -v ON_ERROR_STOP=1 -f /src/db/002_specification_hash.sql
+
+  compose-smoke:
+    name: Docker Compose quickstart
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Subir stack
+        run: docker compose up -d --build
+
+      - name: Aguardar API
+        run: |
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8000/health; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose logs
+          exit 1
+
+      - name: Ingerir fixture e pesquisar
+        run: |
+          curl -fsS -X POST "http://127.0.0.1:8000/v1/admin/ingest/xml?path=fixtures/rpi-layout-sample.xml"
+          curl -fsS -X POST http://127.0.0.1:8000/v1/trademarks/search             -H "Content-Type: application/json"             -d '{"query":"MARCA EXEMPLO","nice_classes":[39],"limit":10}'
+
+      - name: Destruir stack
+        if: always()
+        run: docker compose down -v

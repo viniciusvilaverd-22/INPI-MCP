@@ -11,7 +11,7 @@ from .services import TrademarkService
 from .schemas import SearchRequest, CompareRequest, IngestResponse
 from .ingest import ingest_xml
 
-VERSION = "0.2.0"
+VERSION = "0.2.1"
 RELEASE = "community-v1"
 DEMO_PATH = Path(__file__).parent / "static" / "demo.html"
 
