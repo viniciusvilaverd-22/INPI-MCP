@@ -81,7 +81,7 @@ def probe_rpi(rpi_number: int, *, timeout: int = 30) -> RPIProbe:
         except urllib.error.HTTPError as exc:
             if exc.code == 404:
                 return RPIProbe(number, source_url, False, 404, None, None)
-            if exc.code not in (405, 501):
+            if exc.code not in (403, 405, 501):
                 raise
             response = _probe_request(source_url, "GET", timeout)
 
