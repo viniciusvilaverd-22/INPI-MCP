@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "inpi-mcp-mvp"
-version = "0.2.1"
+version = "0.3.0"
 description = "Infraestrutura auditavel para pesquisa, comparacao e ingestao de marcas do INPI via API e MCP"
 requires-python = ">=3.11"
 dependencies = [
