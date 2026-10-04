@@ -9,7 +9,9 @@ from app.rpi_source import (
     build_rpi_url,
     discover_rpis,
     extract_rpi_zip,
+    fetch_latest_rpi_from_index,
     inspect_rpi_xml,
+    parse_rpi_index_html,
     probe_rpi,
     sha256_file,
 )
@@ -126,3 +128,54 @@ def test_probe_rpi_falls_back_to_ranged_get_on_head_403(monkeypatch):
     assert calls == ["HEAD", "GET"]
     assert probe.available is True
     assert probe.status_code == 206
+
+
+def test_parse_official_rpi_index_rows():
+    html = """
+    <table>
+      <tr><th>NÚMERO REVISTA</th><th>DATA</th></tr>
+      <tr><td>2908</td><td>2026-09-29</td><td>PDF</td></tr>
+      <tr><td><a href="#">2907</a></td><td>22/09/2026</td><td>PDF</td></tr>
+    </table>
+    """
+    entries = parse_rpi_index_html(html)
+    assert [item.rpi_number for item in entries] == [2908, 2907]
+    assert entries[0].rpi_date == "2026-09-29"
+
+
+def test_parse_rpi_index_rejects_page_without_rows():
+    with pytest.raises(ValueError, match="nenhuma RPI"):
+        parse_rpi_index_html("<html><body>sem revista</body></html>")
+
+
+class _FakeHeaders(dict):
+    def get_content_charset(self):
+        return "utf-8"
+
+
+class _FakeIndexResponse:
+    def __init__(self, body: bytes):
+        self.body = body
+        self.headers = _FakeHeaders()
+
+    def read(self):
+        return self.body
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        return False
+
+
+def test_fetch_latest_rpi_uses_official_index(monkeypatch):
+    body = b"<table><tr><td>2908</td><td>2026-09-29</td></tr><tr><td>2907</td><td>2026-09-22</td></tr></table>"
+    monkeypatch.setattr(
+        rpi_source.urllib.request,
+        "urlopen",
+        lambda request, timeout: _FakeIndexResponse(body),
+    )
+    latest = fetch_latest_rpi_from_index(timeout=10)
+    assert latest.rpi_number == 2908
+    assert latest.rpi_date == "2026-09-29"
+    assert latest.source_url == rpi_source.OFFICIAL_RPI_INDEX_URL
