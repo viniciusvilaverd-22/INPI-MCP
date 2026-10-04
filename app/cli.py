@@ -11,7 +11,7 @@ from .rpi_incremental import (
     ingest_one_rpi,
     ingest_rpi_range,
 )
-from .rpi_source import discover_rpis, inspect_rpi_xml, prepare_rpi
+from .rpi_source import discover_rpis, fetch_latest_rpi_from_index, inspect_rpi_xml, prepare_rpi
 
 
 def _dump(payload: dict) -> None:
@@ -106,6 +106,12 @@ def _discover(args: argparse.Namespace) -> int:
     return 0
 
 
+def _latest(args: argparse.Namespace) -> int:
+    entry = fetch_latest_rpi_from_index(timeout=args.timeout)
+    _dump({"status": "ok", "latest": entry.to_dict()})
+    return 0
+
+
 def _add_source_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--raw-root", default="raw/rpi")
     parser.add_argument("--timeout", type=int, default=300)
@@ -165,6 +171,13 @@ def build_parser() -> argparse.ArgumentParser:
     discover.add_argument("--max-scan", type=int, default=4)
     discover.add_argument("--timeout", type=int, default=30)
     discover.set_defaults(handler=_discover)
+
+    latest = sub.add_parser(
+        "latest-rpi",
+        help="le o indice oficial e retorna a RPI mais recente publicada",
+    )
+    latest.add_argument("--timeout", type=int, default=30)
+    latest.set_defaults(handler=_latest)
 
     return parser
 
