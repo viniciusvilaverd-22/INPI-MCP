@@ -1,3 +1,4 @@
+# Self-test marker: official-index HTTP compatibility 2026-10-04
 name: Monitor official INPI RPIs
 
 on:
