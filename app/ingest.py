@@ -7,7 +7,7 @@ from sqlalchemy import select
 from .models import TrademarkProcess, TrademarkNiceClass, TrademarkEvent
 from .normalization import normalize_mark
 
-PARSER_VERSION='rpi-marcas-xml-0.1.0'
+PARSER_VERSION='rpi-marcas-xml-0.2.1'
 
 def _date(v):
     if not v: return None
@@ -29,6 +29,15 @@ def _text(el, path):
 def _stable_hash(payload):
     raw=json.dumps(payload,ensure_ascii=False,sort_keys=True,separators=(',',':')).encode()
     return hashlib.sha256(raw).hexdigest()
+
+def _specification_hash(value):
+    return hashlib.sha256((value or '').encode('utf-8')).hexdigest()
+
+def _nice_class_nodes(process):
+    return [
+        *process.findall('classe-nice'),
+        *process.findall('./lista-classe-nice/classe-nice'),
+    ]
 
 def ingest_xml(session: Session, path: str | Path):
     path=Path(path); source_sha=_sha_file(path)
@@ -52,18 +61,28 @@ def ingest_xml(session: Session, path: str | Path):
             mark=elem.find('marca')
             if mark is not None:
                 tm.mark_name=_text(mark,'nome') or tm.mark_name
-                tm.mark_name_normalized=normalize_mark(tm.mark_name)
+                if tm.mark_name:
+                    tm.mark_name_normalized=normalize_mark(tm.mark_name)
                 tm.presentation_type=mark.attrib.get('apresentacao') or tm.presentation_type
                 tm.nature=mark.attrib.get('natureza') or tm.nature
                 tm.translation=_text(mark,'traducao') or tm.translation
             tm.attorney_name=_text(elem,'procurador') or tm.attorney_name
-            for nc in elem.findall('classe-nice'):
+            for nc in _nice_class_nodes(elem):
                 code=nc.attrib.get('codigo')
                 if not code or not code.isdigit(): continue
                 spec=_text(nc,'especificacao')
-                exists=any(c.nice_class==int(code) and (c.specification or '')==(spec or '') for c in tm.classes)
+                spec_hash=_specification_hash(spec)
+                exists=any(
+                    c.nice_class==int(code) and c.specification_hash==spec_hash
+                    for c in tm.classes
+                )
                 if not exists:
-                    tm.classes.append(TrademarkNiceClass(nice_class=int(code), edition=nc.attrib.get('edicao'), specification=spec))
+                    tm.classes.append(TrademarkNiceClass(
+                        nice_class=int(code),
+                        edition=nc.attrib.get('edicao'),
+                        specification=spec,
+                        specification_hash=spec_hash,
+                    ))
             ds=elem.find('despachos')
             if ds is not None:
                 for d in ds.findall('despacho'):
