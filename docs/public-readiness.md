@@ -39,10 +39,14 @@ message    = feat: establish INPI MCP portfolio release v1
 - [x] API/demo smoke PASS
 - [x] commit da Community v1
 - [x] push da Community v1
-- [ ] CI remota da Community v1 confirmada
+- [x] CI remota da Community v1 confirmada
 - [ ] screenshot/GIF publico da demo
 
 Release commit: `99ca8569426a38d8426f04b12891a2b25b7031c4`.
+
+CI fix commit: `d543ef2e914fab2e3d7e6b6b7d7ab8c18942ebf2`.
+
+GitHub Actions: **PASS** — run `37171833323`.
 
 ## Arquivos que nao devem ser publicados
 
@@ -61,15 +65,9 @@ Por padrao, nao incluir:
 
 ## Gate pos-publicacao
 
-Antes de qualquer novo commit/push:
-
-1. revisar `git status --short --untracked-files=all`;
-2. confirmar que nenhum item ignorado aparece;
-3. revisar o diff da Community v1;
-4. confirmar que `VALIDATION.json` esta em PASS;
-5. criar commit somente com nova autorizacao;
-6. fazer push somente com nova autorizacao;
-7. verificar CI remota depois do push.
+1. manter `raw/` e evidencias locais fora do repositorio;
+2. nao declarar ingestao real completa da RPI 2908 sem recibo conclusivo;
+3. nao declarar production-ready sem hardening de autenticacao, isolamento e observabilidade.
 
 ## Topicos recomendados
 

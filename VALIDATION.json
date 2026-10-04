@@ -4,8 +4,14 @@
   "validated_at": "2026-10-03",
   "environment": "DEV",
   "release_commit": "99ca8569426a38d8426f04b12891a2b25b7031c4",
+  "ci_fix_commit": "d543ef2e914fab2e3d7e6b6b7d7ab8c18942ebf2",
   "repository": "viniciusvilaverd-22/INPI-MCP",
   "branch": "main",
+  "remote_ci": {
+    "status": "PASS",
+    "run_id": 37171833323,
+    "commit": "d543ef2e914fab2e3d7e6b6b7d7ab8c18942ebf2"
+  },
   "tests": {
     "status": "PASS",
     "count": 10,
