@@ -1,6 +1,10 @@
 name: Monitor official INPI RPIs
 
 on:
+  push:
+    branches: ["main"]
+    paths:
+      - ".github/workflows/rpi-monitor.yml"
   schedule:
     - cron: "17 13 * * 1-5"
   workflow_dispatch:
