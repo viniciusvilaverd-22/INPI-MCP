@@ -1,8 +1,18 @@
+import urllib.error
 import zipfile
 
 import pytest
 
-from app.rpi_source import build_rpi_url, extract_rpi_zip, inspect_rpi_xml, sha256_file
+import app.rpi_source as rpi_source
+from app.rpi_source import (
+    RPIProbe,
+    build_rpi_url,
+    discover_rpis,
+    extract_rpi_zip,
+    inspect_rpi_xml,
+    probe_rpi,
+    sha256_file,
+)
 
 
 def _make_zip(tmp_path, xml_text: str, member: str = "RM2908.xml"):
@@ -46,3 +56,55 @@ def test_rejects_mismatched_rpi(tmp_path):
     )
     with pytest.raises(ValueError, match="difere"):
         extract_rpi_zip(zip_path, 2908, tmp_path / "out")
+
+
+class _FakeResponse:
+    def __init__(self, status=200, headers=None):
+        self.status = status
+        self.headers = headers or {}
+        self.closed = False
+
+    def getcode(self):
+        return self.status
+
+    def close(self):
+        self.closed = True
+
+
+def test_probe_rpi_available(monkeypatch):
+    response = _FakeResponse(
+        status=200,
+        headers={"Content-Length": "12345", "Last-Modified": "Tue, 06 Oct 2026 10:00:00 GMT"},
+    )
+    monkeypatch.setattr(rpi_source.urllib.request, "urlopen", lambda request, timeout: response)
+    probe = probe_rpi(2909)
+    assert probe.available is True
+    assert probe.status_code == 200
+    assert probe.content_length == 12345
+
+
+def test_probe_rpi_404_is_not_available(monkeypatch):
+    def missing(request, timeout):
+        raise urllib.error.HTTPError(request.full_url, 404, "Not Found", {}, None)
+
+    monkeypatch.setattr(rpi_source.urllib.request, "urlopen", missing)
+    probe = probe_rpi(2909)
+    assert probe.available is False
+    assert probe.status_code == 404
+
+
+def test_discovery_stops_at_first_missing(monkeypatch):
+    def fake_probe(number, timeout=30):
+        return RPIProbe(
+            rpi_number=number,
+            source_url=build_rpi_url(number),
+            available=number < 2910,
+            status_code=200 if number < 2910 else 404,
+            content_length=None,
+            last_modified=None,
+        )
+
+    monkeypatch.setattr(rpi_source, "probe_rpi", fake_probe)
+    probes = discover_rpis(2908, max_scan=4)
+    assert [item.rpi_number for item in probes] == [2909, 2910]
+    assert [item.available for item in probes] == [True, False]
