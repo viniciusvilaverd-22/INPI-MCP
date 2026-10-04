@@ -3,45 +3,47 @@
   "release": "community-v1",
   "validated_at": "2026-10-04",
   "environment": "DEV",
-  "published_baseline": {
-    "release_commit": "99ca8569426a38d8426f04b12891a2b25b7031c4",
-    "ci_fix_commit": "d543ef2e914fab2e3d7e6b6b7d7ab8c18942ebf2",
-    "remote_ci": {
-      "status": "PASS",
-      "run_id": 37171833323
+  "release_commit": "50d932f7231f032a5d842a129b13b78f3f486874",
+  "pull_request": 1,
+  "remote_ci": {
+    "status": "PASS",
+    "pr_run_id": 37182703042,
+    "main_run_id": 37182747943,
+    "jobs": {
+      "python_3_11": "PASS",
+      "python_3_13": "PASS",
+      "postgres_migration_002": "PASS",
+      "docker_compose_quickstart": "PASS"
     }
   },
-  "candidate_0_2_1": {
-    "remote_ci": "PENDING",
-    "parser_version": "rpi-marcas-xml-0.2.1",
-    "tests_local": {
-      "status": "PASS",
-      "count": 11,
-      "runtime": "Python 3.13 container"
-    },
-    "rpi_2908_e2e": {
-      "status": "PASS",
-      "environment": "DEV_DISPOSABLE_POSTGRES",
-      "xml_bytes": 61214732,
-      "xml_sha256": "23392bfc9e03c52c9fa8befc9be21e4f3ee50993dfe21edb876cbbd62706089d",
-      "processes": 39858,
-      "nice_classes": 34736,
-      "events": 40201,
-      "first_ingestion_seconds": 145.227,
-      "second_ingestion_seconds": 64.94,
-      "second_ingestion_new_events": 0,
-      "counts_unchanged_on_second_ingestion": true,
-      "api_real_data": "PASS",
-      "mcp_real_data": "PASS_IN_PROCESS"
-    },
-    "gates": {
-      "RPI_2908_FULL_REAL_INGESTION": "PASS",
-      "IDEMPOTENCY_REAL_DATA": "PASS",
-      "API_REAL_DATA": "PASS",
-      "MCP_REAL_DATA": "PASS_IN_PROCESS",
-      "MIGRATION_002_POSTGRES": "PENDING_REMOTE_CI",
-      "DOCKER_COMPOSE_QUICKSTART": "PENDING_REMOTE_CI"
-    }
+  "parser_version": "rpi-marcas-xml-0.2.1",
+  "tests_local": {
+    "status": "PASS",
+    "count": 11,
+    "runtime": "Python 3.13 container"
+  },
+  "rpi_2908_e2e": {
+    "status": "PASS",
+    "environment": "DEV_DISPOSABLE_POSTGRES",
+    "xml_bytes": 61214732,
+    "xml_sha256": "23392bfc9e03c52c9fa8befc9be21e4f3ee50993dfe21edb876cbbd62706089d",
+    "processes": 39858,
+    "nice_classes": 34736,
+    "events": 40201,
+    "first_ingestion_seconds": 145.227,
+    "second_ingestion_seconds": 64.94,
+    "second_ingestion_new_events": 0,
+    "counts_unchanged_on_second_ingestion": true,
+    "api_real_data": "PASS",
+    "mcp_real_data": "PASS_IN_PROCESS"
+  },
+  "gates": {
+    "RPI_2908_FULL_REAL_INGESTION": "PASS",
+    "IDEMPOTENCY_REAL_DATA": "PASS",
+    "API_REAL_DATA": "PASS",
+    "MCP_REAL_DATA": "PASS_IN_PROCESS",
+    "MIGRATION_002_POSTGRES": "PASS",
+    "DOCKER_COMPOSE_QUICKSTART": "PASS"
   },
   "official_rpi_2908_source": {
     "download_status": "PASS",
