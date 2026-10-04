@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import shutil
+import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
 import zipfile
@@ -12,7 +13,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 OFFICIAL_RPI_BASE_URL = "https://revistas.inpi.gov.br/txt"
-USER_AGENT = "INPI-MCP-Community/0.2 (+https://github.com/viniciusvilaverd-22/INPI-MCP)"
+USER_AGENT = "INPI-MCP-Community/0.3 (+https://github.com/viniciusvilaverd-22/INPI-MCP)"
+
+
+class RPIUnavailableError(RuntimeError):
+    def __init__(self, rpi_number: int):
+        super().__init__(f"RPI {rpi_number} ainda nao disponivel na fonte oficial")
+        self.rpi_number = rpi_number
 
 
 @dataclass(frozen=True)
@@ -31,6 +38,19 @@ class RPIArtifact:
         return asdict(self)
 
 
+@dataclass(frozen=True)
+class RPIProbe:
+    rpi_number: int
+    source_url: str
+    available: bool
+    status_code: int | None
+    content_length: int | None
+    last_modified: str | None
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+
 def _validate_number(rpi_number: int) -> int:
     value = int(rpi_number)
     if value <= 0 or value > 99999:
@@ -41,6 +61,57 @@ def _validate_number(rpi_number: int) -> int:
 def build_rpi_url(rpi_number: int) -> str:
     number = _validate_number(rpi_number)
     return f"{OFFICIAL_RPI_BASE_URL}/RM{number}.zip"
+
+
+def _probe_request(url: str, method: str, timeout: int):
+    headers = {"User-Agent": USER_AGENT, "Accept": "application/zip,*/*"}
+    if method == "GET":
+        headers["Range"] = "bytes=0-0"
+    request = urllib.request.Request(url, headers=headers, method=method)
+    return urllib.request.urlopen(request, timeout=timeout)
+
+
+def probe_rpi(rpi_number: int, *, timeout: int = 30) -> RPIProbe:
+    number = _validate_number(rpi_number)
+    source_url = build_rpi_url(number)
+    response = None
+    try:
+        try:
+            response = _probe_request(source_url, "HEAD", timeout)
+        except urllib.error.HTTPError as exc:
+            if exc.code == 404:
+                return RPIProbe(number, source_url, False, 404, None, None)
+            if exc.code not in (405, 501):
+                raise
+            response = _probe_request(source_url, "GET", timeout)
+
+        status = getattr(response, "status", None) or response.getcode()
+        headers = response.headers
+        length = headers.get("Content-Length")
+        return RPIProbe(
+            rpi_number=number,
+            source_url=source_url,
+            available=200 <= int(status) < 400,
+            status_code=int(status),
+            content_length=int(length) if length and length.isdigit() else None,
+            last_modified=headers.get("Last-Modified"),
+        )
+    finally:
+        if response is not None:
+            response.close()
+
+
+def discover_rpis(after: int, *, max_scan: int = 4, timeout: int = 30) -> list[RPIProbe]:
+    start = _validate_number(after)
+    if max_scan <= 0 or max_scan > 100:
+        raise ValueError("max_scan deve estar entre 1 e 100")
+    probes = []
+    for number in range(start + 1, start + max_scan + 1):
+        probe = probe_rpi(number, timeout=timeout)
+        probes.append(probe)
+        if not probe.available:
+            break
+    return probes
 
 
 def sha256_file(path: str | Path) -> str:
@@ -127,7 +198,13 @@ def prepare_rpi(
             headers={"User-Agent": USER_AGENT, "Accept": "application/zip,*/*"},
         )
         try:
-            with urllib.request.urlopen(request, timeout=timeout) as response, temp_zip.open("wb") as out:
+            try:
+                response = urllib.request.urlopen(request, timeout=timeout)
+            except urllib.error.HTTPError as exc:
+                if exc.code == 404:
+                    raise RPIUnavailableError(number) from exc
+                raise
+            with response, temp_zip.open("wb") as out:
                 shutil.copyfileobj(response, out, length=1024 * 1024)
             if temp_zip.stat().st_size < 100:
                 raise ValueError("download da RPI produziu arquivo pequeno demais")
