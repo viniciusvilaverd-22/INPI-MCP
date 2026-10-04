@@ -1,0 +1,6 @@
+{
+  "query": "GENTILL MOB",
+  "nice_classes": [39],
+  "include_similar": true,
+  "limit": 20
+}

@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "inpi-trademark-intelligence": {
+      "command": "python",
+      "args": [
+        "-m",
+        "app.mcp_server"
+      ]
+    }
+  }
+}

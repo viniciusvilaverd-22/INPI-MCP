@@ -1,0 +1,24 @@
+{
+  "version": "0.1.0",
+  "portfolio_release": "v1",
+  "validated_at": "2026-10-03",
+  "environment": "DEV",
+  "tests": {
+    "status": "PASS",
+    "count": 5,
+    "evidence": "mcp1-validation-result.txt"
+  },
+  "api_smoke": {
+    "status": "PASS",
+    "evidence": "fix-api-validation.txt"
+  },
+  "mcp_runtime": {
+    "status": "PASS",
+    "evidence": "mcp1-validation-result.txt"
+  },
+  "real_rpi_2908": {
+    "status": "NOT_CLAIMED",
+    "note": "A Portfolio Release v1 não declara a RPI 2908 real como ingerida. A fixture de testes não representa a publicação real completa."
+  },
+  "production_readiness": "NOT_CLAIMED"
+}

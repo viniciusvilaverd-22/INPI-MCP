@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<revista numero="2908" data="29/09/2026">
+  <processo numero="123456789" data-deposito="01/09/2026">
+    <despachos><despacho codigo="IPAS009" nome="Publicação de pedido de registro para oposição (exame formal concluído)"><texto-complementar>EXAME COM BASE NOS DADOS BIBLIOGRÁFICOS</texto-complementar></despacho></despachos>
+    <titulares><titular nome-razao-social="EMPRESA EXEMPLO LTDA" pais="BR" uf="RS"/></titulares>
+    <marca apresentacao="Nominativa" natureza="De Serviço"><nome>MARCA EXEMPLO</nome><traducao></traducao></marca>
+    <prioridade-unionista><prioridade data="01/08/2026" numero="EX-001" pais="BR"/></prioridade-unionista>
+    <classes-vienna edicao="9"><classe-vienna codigo="27.5.1"/></classes-vienna>
+    <classe-nice codigo="39" edicao="13"><especificacao>Serviços de transporte.</especificacao></classe-nice>
+    <procurador>PROCURADOR EXEMPLO</procurador>
+  </processo>
+  <processo numero="987654321">
+    <despachos><despacho codigo="IPAS270" nome="Despacho de petição"><texto-complementar>Texto descritivo do despacho</texto-complementar><protocolo numero="850120003972" data="13/01/2026" codigoServico="3496"><requerente nome-razao-social="REQUERENTE EXEMPLO" pais="BR" uf="SP"/><procurador>PROCURADOR DA PETIÇÃO</procurador><cessionario nome-razao-social="CESSIONARIO EXEMPLO"/></protocolo></despacho></despachos>
+  </processo>
+</revista>

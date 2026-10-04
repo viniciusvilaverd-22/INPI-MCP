@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "release": "portfolio-v1",
+  "status": "PRE_COMMIT_GATE",
+  "generated_at": "2026-10-03",
+  "include": [
+    ".env.example",
+    ".gitattributes",
+    ".gitignore",
+    ".github/workflows/ci.yml",
+    "CONTRIBUTING.md",
+    "Dockerfile",
+    "LICENSE",
+    "PUBLIC_MANIFEST.json",
+    "README.md",
+    "SECURITY.md",
+    "VALIDATION.json",
+    "app/",
+    "db/001_init.sql",
+    "docker-compose.yml",
+    "docs/",
+    "examples/",
+    "fixtures/rpi-layout-sample.xml",
+    "install-dev.ps1",
+    "pyproject.toml",
+    "tests/"
+  ],
+  "exclude": [
+    ".env",
+    ".venv/",
+    ".pytest_cache/",
+    "__pycache__/",
+    ".gentill/",
+    ".gentill-audit.jsonl",
+    ".gentill-audit.jsonl.lock",
+    ".docker-temp/",
+    "raw/",
+    "vault/",
+    "local logs",
+    "diagnostic outputs",
+    "validation snapshots",
+    "one-off local ingestion/validation scripts"
+  ],
+  "constraints": {
+    "git_initialized": true,
+    "commit_created": false,
+    "remote_configured": false,
+    "push_performed": false,
+    "production_touched": false
+  }
+}

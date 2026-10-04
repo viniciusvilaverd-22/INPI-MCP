@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Environment / local configuration
+.env
+.env.local
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Internal engineering memory
+vault/
+
+# Local runtime / Gentill evidence
+.gentill/
+.gentill-audit.jsonl
+.gentill-audit.jsonl.lock
+.docker-temp/
+
+# Large/raw source material
+raw/
+
+# Local operational outputs
+api-health.txt
+api-logs.txt
+compose-ps.txt
+search-api.txt
+ingest-api.txt
+*-output.txt
+*-diagnostic.txt
+*-validation-result.txt
+*-check.txt
+*-snapshot.txt
+*-discovery.txt
+*-test.txt
+fix-*.txt
+docker-helper-location*.txt
+venv-diagnostic.txt
+ui-*.txt
+
+# Local one-off validation/ingestion scripts
+validate-*.ps1
+ingest-rpi*.ps1
+
+# Local databases / coverage
+*.db
+*.sqlite
+*.sqlite3
+.coverage
+htmlcov/
