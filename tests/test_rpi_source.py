@@ -108,3 +108,21 @@ def test_discovery_stops_at_first_missing(monkeypatch):
     probes = discover_rpis(2908, max_scan=4)
     assert [item.rpi_number for item in probes] == [2909, 2910]
     assert [item.available for item in probes] == [True, False]
+
+
+def test_probe_rpi_falls_back_to_ranged_get_on_head_403(monkeypatch):
+    calls = []
+
+    def fake_urlopen(request, timeout):
+        calls.append(request.get_method())
+        if request.get_method() == "HEAD":
+            raise urllib.error.HTTPError(request.full_url, 403, "Forbidden", {}, None)
+        assert request.headers.get("Range") == "bytes=0-0"
+        return _FakeResponse(status=206, headers={"Content-Length": "1"})
+
+    monkeypatch.setattr(rpi_source.urllib.request, "urlopen", fake_urlopen)
+    probe = probe_rpi(2909)
+
+    assert calls == ["HEAD", "GET"]
+    assert probe.available is True
+    assert probe.status_code == 206
