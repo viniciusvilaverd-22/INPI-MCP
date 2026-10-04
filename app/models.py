@@ -33,8 +33,11 @@ class TrademarkNiceClass(Base):
     nice_class: Mapped[int] = mapped_column(Integer, index=True)
     edition: Mapped[str | None] = mapped_column(String(16), nullable=True)
     specification: Mapped[str | None] = mapped_column(Text, nullable=True)
+    specification_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     trademark: Mapped['TrademarkProcess'] = relationship(back_populates='classes')
-    __table_args__ = (UniqueConstraint('trademark_id','nice_class','specification', name='uq_tm_class_spec'),)
+    __table_args__ = (
+        UniqueConstraint('trademark_id','nice_class','specification_hash', name='uq_tm_class_spec_hash'),
+    )
 
 class TrademarkEvent(Base):
     __tablename__ = 'trademark_event'
