@@ -3,31 +3,41 @@
   "release": "community-v1",
   "validated_at": "2026-10-04",
   "environment": "DEV",
-  "published_baseline": {
-    "version": "0.2.1",
-    "release_commit": "50d932f7231f032a5d842a129b13b78f3f486874",
-    "main_run_id": 37182747943,
-    "status": "PASS"
-  },
-  "candidate_0_3_0": {
-    "remote_ci": "PENDING",
-    "gates": {
-      "INCREMENTAL_STATE_UNIT_TESTS": "PENDING_REMOTE_CI",
-      "RPI_PROBE_UNIT_TESTS": "PENDING_REMOTE_CI",
-      "POSTGRES_MIGRATION_003": "PENDING_REMOTE_CI",
-      "DOCKER_COMPOSE_QUICKSTART": "PENDING_REMOTE_CI",
-      "MONITOR_WORKFLOW_DISPATCH": "NOT_RUN"
+  "release_commit": "32be1a40dfa88e32e41c44643ba01c328674d6c7",
+  "monitor_hardening_head": "f67073a594ba3bb38346370bf4ddb477d0e5c300",
+  "remote_ci": {
+    "status": "PASS",
+    "main_run_id": 37186473686,
+    "tests": {
+      "python_3_11": "PASS",
+      "python_3_13": "PASS",
+      "count": 25,
+      "warning_count": 1
     },
-    "features": {
-      "last_ingested_rpi": true,
-      "last_checked_rpi": true,
-      "ingestion_run_history": true,
-      "ingest_range": true,
-      "ingest_next": true,
-      "safe_rpi_probe": true,
-      "scheduled_issue_monitor": true,
-      "automatic_database_ingestion_from_monitor": false
-    }
+    "postgres_migrations_002_003": "PASS",
+    "docker_compose_quickstart": "PASS"
+  },
+  "gates": {
+    "INCREMENTAL_STATE": "PASS",
+    "LAST_INGESTED_RPI": "PASS",
+    "MULTI_RPI_INGESTION": "PASS",
+    "RESUME_WITHOUT_SKIP": "PASS",
+    "POSTGRES_MIGRATION_003": "PASS",
+    "RPI_INDEX_PARSER": "PASS",
+    "RPI_MONITOR_FAILURE_SAFETY": "PASS",
+    "GITHUB_RUNNER_OFFICIAL_SOURCE_ACCESS": "DEGRADED_HTTP_503"
+  },
+  "monitor": {
+    "workflow": ".github/workflows/rpi-monitor.yml",
+    "schedule": "weekdays",
+    "database_credentials": false,
+    "automatic_database_ingestion": false,
+    "self_test_run_id": 37186473687,
+    "self_test_conclusion": "SUCCESS_DEGRADED",
+    "self_test_source_status": "unavailable",
+    "self_test_source_http": 503,
+    "false_new_rpi_inferred": false,
+    "false_issue_created": false
   },
   "rpi_2908_e2e_baseline": {
     "status": "PASS",
