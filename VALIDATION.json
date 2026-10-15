@@ -1,43 +1,28 @@
 {
-  "version": "0.3.0",
+  "version": "0.3.1",
   "release": "community-v1",
-  "validated_at": "2026-10-04",
+  "validated_at": "2026-10-15",
   "environment": "DEV",
-  "release_commit": "32be1a40dfa88e32e41c44643ba01c328674d6c7",
-  "monitor_hardening_head": "f67073a594ba3bb38346370bf4ddb477d0e5c300",
-  "remote_ci": {
+  "published_baseline": {
+    "version": "0.3.0",
+    "head": "62ef3f9cd436541ca6971c554c022ddeceb4952c",
     "status": "PASS",
-    "main_run_id": 37186473686,
-    "tests": {
-      "python_3_11": "PASS",
-      "python_3_13": "PASS",
-      "count": 25,
-      "warning_count": 1
-    },
-    "postgres_migrations_002_003": "PASS",
-    "docker_compose_quickstart": "PASS"
+    "tests": 25,
+    "github_runner_official_source_access": "DEGRADED_HTTP_503"
   },
-  "gates": {
-    "INCREMENTAL_STATE": "PASS",
-    "LAST_INGESTED_RPI": "PASS",
-    "MULTI_RPI_INGESTION": "PASS",
-    "RESUME_WITHOUT_SKIP": "PASS",
-    "POSTGRES_MIGRATION_003": "PASS",
-    "RPI_INDEX_PARSER": "PASS",
-    "RPI_MONITOR_FAILURE_SAFETY": "PASS",
-    "GITHUB_RUNNER_OFFICIAL_SOURCE_ACCESS": "DEGRADED_HTTP_503"
-  },
-  "monitor": {
-    "workflow": ".github/workflows/rpi-monitor.yml",
-    "schedule": "weekdays",
-    "database_credentials": false,
-    "automatic_database_ingestion": false,
-    "self_test_run_id": 37186473687,
-    "self_test_conclusion": "SUCCESS_DEGRADED",
-    "self_test_source_status": "unavailable",
-    "self_test_source_http": 503,
-    "false_new_rpi_inferred": false,
-    "false_issue_created": false
+  "candidate_0_3_1": {
+    "remote_ci": "PENDING",
+    "gates": {
+      "POSTGRES_ADVISORY_LOCK": "PENDING_REMOTE_CI",
+      "FAILED_RUN_RECOVERY": "PENDING_REMOTE_CI",
+      "RPI_OBSERVABILITY": "PENDING_REMOTE_CI",
+      "ADMIN_ENDPOINT_DEFAULT_CLOSED": "PENDING_REMOTE_CI",
+      "MCP_STDIO_TRANSPORT": "PENDING_REMOTE_CI",
+      "PYTHON_3_11": "PENDING_REMOTE_CI",
+      "PYTHON_3_13": "PENDING_REMOTE_CI",
+      "POSTGRES_MIGRATIONS_002_003": "PENDING_REMOTE_CI",
+      "DOCKER_COMPOSE_QUICKSTART": "PENDING_REMOTE_CI"
+    }
   },
   "rpi_2908_e2e_baseline": {
     "status": "PASS",
