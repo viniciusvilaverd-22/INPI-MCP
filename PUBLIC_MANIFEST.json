@@ -1,25 +1,27 @@
 {
   "schema_version": 5,
   "release": "community-v1",
-  "status": "CANDIDATE_0_3_1",
+  "status": "PUBLISHED_0_3_1",
   "generated_at": "2026-10-15",
   "repository": "viniciusvilaverd-22/INPI-MCP",
-  "branch": "hardening-v0.3.1",
-  "published_baseline": {
-    "version": "0.3.0",
-    "head": "62ef3f9cd436541ca6971c554c022ddeceb4952c",
-    "status": "PASS"
+  "branch": "main",
+  "release_commit": "0398db00c517428a5afffb746f7c2b6abc5b808a",
+  "remote_ci": {
+    "status": "PASS",
+    "run_id": 38799612128
   },
-  "candidate": {
-    "version": "0.3.1",
-    "advisory_lock": "IMPLEMENTED",
-    "failure_recovery": "IMPLEMENTED",
-    "operational_observability": "IMPLEMENTED",
-    "admin_endpoint_default_closed": "IMPLEMENTED",
-    "mcp_stdio_transport_test": "IMPLEMENTED",
-    "remote_ci": "PENDING",
-    "production_touched": false
+  "version": "0.3.1",
+  "gates": {
+    "tests": 31,
+    "mcp_stdio_transport": "PASS",
+    "postgres_advisory_lock": "PASS",
+    "failure_recovery": "PASS",
+    "operational_observability": "PASS",
+    "admin_endpoint_default_closed": "PASS",
+    "postgres_migrations_002_003": "PASS",
+    "docker_compose_quickstart": "PASS"
   },
+  "production_touched": false,
   "include": [
     ".github/workflows/ci.yml",
     ".github/workflows/rpi-monitor.yml",

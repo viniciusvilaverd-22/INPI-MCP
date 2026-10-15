@@ -3,26 +3,40 @@
   "release": "community-v1",
   "validated_at": "2026-10-15",
   "environment": "DEV",
-  "published_baseline": {
-    "version": "0.3.0",
-    "head": "62ef3f9cd436541ca6971c554c022ddeceb4952c",
+  "release_commit": "0398db00c517428a5afffb746f7c2b6abc5b808a",
+  "pull_request": 8,
+  "remote_ci": {
     "status": "PASS",
-    "tests": 25,
-    "github_runner_official_source_access": "DEGRADED_HTTP_503"
+    "pr_run_id": 38799483624,
+    "main_run_id": 38799612128,
+    "tests": {
+      "python_3_11": "PASS",
+      "python_3_13": "PASS",
+      "count": 31,
+      "warning_count": 1
+    },
+    "mcp_stdio_transport": "PASS",
+    "postgres_advisory_lock": "PASS",
+    "postgres_migrations_002_003": "PASS",
+    "docker_compose_quickstart": "PASS"
   },
-  "candidate_0_3_1": {
-    "remote_ci": "PENDING",
-    "gates": {
-      "POSTGRES_ADVISORY_LOCK": "PENDING_REMOTE_CI",
-      "FAILED_RUN_RECOVERY": "PENDING_REMOTE_CI",
-      "RPI_OBSERVABILITY": "PENDING_REMOTE_CI",
-      "ADMIN_ENDPOINT_DEFAULT_CLOSED": "PENDING_REMOTE_CI",
-      "MCP_STDIO_TRANSPORT": "PENDING_REMOTE_CI",
-      "PYTHON_3_11": "PENDING_REMOTE_CI",
-      "PYTHON_3_13": "PENDING_REMOTE_CI",
-      "POSTGRES_MIGRATIONS_002_003": "PENDING_REMOTE_CI",
-      "DOCKER_COMPOSE_QUICKSTART": "PENDING_REMOTE_CI"
-    }
+  "gates": {
+    "POSTGRES_ADVISORY_LOCK": "PASS",
+    "FAILED_RUN_RECOVERY": "PASS",
+    "RPI_OBSERVABILITY": "PASS",
+    "ADMIN_ENDPOINT_DEFAULT_CLOSED": "PASS",
+    "MCP_STDIO_TRANSPORT": "PASS",
+    "PYTHON_3_11": "PASS",
+    "PYTHON_3_13": "PASS",
+    "POSTGRES_MIGRATIONS_002_003": "PASS",
+    "DOCKER_COMPOSE_QUICKSTART": "PASS"
+  },
+  "monitor": {
+    "workflow": ".github/workflows/rpi-monitor.yml",
+    "mode": "BEST_EFFORT",
+    "github_runner_official_source_access": "DEGRADED_HTTP_503",
+    "false_new_rpi_inferred": false,
+    "automatic_database_ingestion": false
   },
   "rpi_2908_e2e_baseline": {
     "status": "PASS",

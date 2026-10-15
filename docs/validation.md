@@ -2,47 +2,86 @@
 
 Data: **15/10/2026**  
 Ambiente: **DEV**  
-Status: **CANDIDATO / CI PENDENTE**
+Status: **PUBLICADO / CI PASS**
 
-## Baseline 0.3.0
-
-A 0.3.0 publicada possui:
-
-- ingestao incremental;
-- `last_ingested_rpi` e `last_checked_rpi`;
-- migration 003;
-- monitor de novas RPIs em modo best-effort;
-- 25 testes PASS;
-- migrations 002–003 PASS;
-- Docker Compose PASS.
-
-O acesso da fonte oficial a partir de runners GitHub permanece degradado por HTTP 503. Esse erro nao e interpretado como ausencia de RPI.
-
-## Hardening 0.3.1
-
-O candidato adiciona:
-
-- advisory lock PostgreSQL para serializar fluxos mutantes de RPI;
-- falha rapida quando outra ingestao ja esta ativa;
-- retry de uma RPI previamente `failed` sem avancar o cursor antes do sucesso;
-- observabilidade operacional no endpoint/status;
-- endpoint administrativo fechado por padrao;
-- opt-in administrativo restrito a DEV;
-- transporte MCP stdio real na suite.
-
-## Gates pendentes de CI
+## Publicacao
 
 ```text
-POSTGRES_ADVISORY_LOCK            PENDING
-FAILED_RUN_RECOVERY              PENDING
-RPI_OBSERVABILITY                PENDING
-ADMIN_ENDPOINT_DEFAULT_CLOSED     PENDING
-MCP_STDIO_TRANSPORT              PENDING
-PYTHON_3_11                      PENDING
-PYTHON_3_13                      PENDING
-POSTGRES_MIGRATIONS_002_003      PENDING
-DOCKER_COMPOSE_QUICKSTART        PENDING
+release commit = 0398db00c517428a5afffb746f7c2b6abc5b808a
+pull request   = #8
+PR CI run      = 38799483624
+main CI run    = 38799612128
 ```
+
+## Gates da 0.3.1
+
+```text
+Python 3.11                   PASS
+Python 3.13                   PASS
+31 testes                     PASS
+MCP stdio real                PASS
+PostgreSQL advisory lock      PASS
+Recovery apos failed          PASS
+Observabilidade RPI           PASS
+Admin endpoint default closed PASS
+Migrations 002-003            PASS
+Docker Compose quickstart     PASS
+```
+
+## MCP
+
+O gate MCP nao e mais apenas in-process.
+
+A CI inicia `python -m app.mcp_server` via stdio, inicializa uma sessao MCP, lista as ferramentas e chama:
+
+- `search_trademark`;
+- `get_trademark`;
+- `compare_trademark`.
+
+As chamadas usam uma base isolada com fixture real do projeto.
+
+## Concorrencia
+
+Em PostgreSQL, os fluxos mutantes de RPI usam advisory lock.
+
+A CI prova que:
+
+1. uma sessao adquire o lock;
+2. uma segunda sessao recebe `RPIIngestionBusyError`;
+3. o segundo fluxo nao entra na regiao critica;
+4. o lock e liberado ao final.
+
+## Recuperacao
+
+Uma execucao que termina como `failed` nao avanca `last_ingested_rpi`.
+
+O teste de recovery repete a mesma RPI, conclui com sucesso e somente entao avanca o cursor.
+
+## Observabilidade
+
+`GET /v1/rpi/status` e `python -m app.cli rpi-status` incluem:
+
+- `last_ingested_rpi`;
+- `last_checked_rpi`;
+- `cursor_gap`;
+- contagens por estado;
+- ultima execucao;
+- duracao;
+- ultima falha;
+- historico recente.
+
+## Endpoint administrativo
+
+`POST /v1/admin/ingest/xml` fica fechado por padrao.
+
+Ele somente responde quando:
+
+```text
+APP_ENV=dev
+ENABLE_DEV_ADMIN_INGEST=true
+```
+
+O endpoint nao aparece no OpenAPI.
 
 ## Baseline real RPI 2908
 
@@ -54,6 +93,12 @@ segunda ingestao   0 novos eventos
 XML SHA-256        23392bfc9e03c52c9fa8befc9be21e4f3ee50993dfe21edb876cbbd62706089d
 ```
 
+## Monitor
+
+O monitor remoto continua best-effort porque o host do INPI pode responder HTTP 503 aos runners do GitHub.
+
+Falhas 5xx nao sao tratadas como ausencia de RPI e nao geram publicacoes falsas.
+
 ## Producao
 
-Continua nao declarada como pronta para producao.
+A 0.3.1 continua **nao declarada pronta para producao**.
