@@ -1,63 +1,42 @@
 # Checklist de publicacao publica
 
-## Portfolio v1 — concluido
+## Baselines concluidas
 
-- [x] repositorio publico criado;
-- [x] branch `main` publicada;
-- [x] README, seguranca e contribuicao documentados;
-- [x] CI inicial configurada.
+- [x] Portfolio v1 publicado;
+- [x] Community v1 publicada;
+- [x] RPI 2908 E2E real validada;
+- [x] INPI MCP 0.2.1 publicado;
+- [x] INPI MCP 0.3.0 incremental publicado;
+- [x] migration 002;
+- [x] migration 003;
+- [x] monitor de RPI com falha segura para HTTP 5xx.
 
-Baseline inicial:
+## INPI MCP 0.3.1 — candidato
 
-```text
-bec37a05d5ad383acf1e30fef35029cb1a8c18af
-```
+- [x] advisory lock implementado;
+- [x] teste de recovery apos falha implementado;
+- [x] observabilidade operacional implementada;
+- [x] endpoint administrativo fechado por padrao;
+- [x] teste de transporte MCP stdio implementado;
+- [ ] CI Python 3.11;
+- [ ] CI Python 3.13;
+- [ ] prova PostgreSQL advisory lock;
+- [ ] migrations 002–003;
+- [ ] Docker Compose;
+- [ ] merge na main;
+- [ ] metadados finais PUBLISHED/PASS.
 
-## Community v1 — concluida
+## Fora da publicacao
 
-- [x] CLI de RPI oficial;
-- [x] demo web local;
-- [x] quickstart;
-- [x] ferramentas MCP;
-- [x] CI Python 3.11/3.13.
-
-## INPI MCP 0.2.1 — publicado
-
-- [x] RPI 2908 real E2E;
-- [x] 39.858 processos ingeridos;
-- [x] 34.736 classes Nice;
-- [x] 40.201 eventos;
-- [x] segunda ingestao com 0 novos eventos;
-- [x] API com dados reais;
-- [x] MCP com dados reais in-process;
-- [x] parser `rpi-marcas-xml-0.2.1`;
-- [x] migration `002_specification_hash.sql`;
-- [x] upgrade de schema legado validado em PostgreSQL 16;
-- [x] especificacao Nice longa validada;
-- [x] reaplicacao idempotente da migration;
-- [x] Docker Compose quickstart validado;
-- [x] PR #1 validado e mergeado;
-- [x] CI da `main` confirmada.
-
-```text
-release commit = 50d932f7231f032a5d842a129b13b78f3f486874
-main CI run    = 37182747943
-status         = PASS
-```
-
-## Arquivos que nao devem ser publicados
-
-Por padrao, nao incluir:
+Nao incluir:
 
 - `.env`;
 - `.venv/`;
 - `.gentill/`;
-- `.gentill-audit.jsonl`;
 - `raw/`;
 - `vault/`;
-- logs e snapshots locais;
-- resultados temporarios de testes.
+- logs e evidencias locais.
 
-## Proximo gate tecnico
+## Producao
 
-A proxima evolucao deve ser ingestao incremental de multiplas RPIs e monitoramento de novas publicacoes. Producao continua fora do escopo ate existir hardening de autenticacao, isolamento e observabilidade.
+A 0.3.1 continua DEV. Producao exige autenticacao/autorizacao, rate limiting, isolamento, observabilidade operacional e hardening de infraestrutura.
