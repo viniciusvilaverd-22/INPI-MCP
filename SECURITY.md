@@ -2,38 +2,69 @@
 
 ## Estado do projeto
 
-O INPI MCP está em estágio de MVP técnico e **não é considerado pronto para produção**.
+O INPI MCP permanece em estágio técnico de DEV e **não é considerado pronto para produção**.
 
-O endpoint administrativo de ingestão existe para DEV e não deve ser exposto diretamente à Internet no estado atual.
+## Endpoint administrativo
+
+`POST /v1/admin/ingest/xml` é uma facilidade local de DEV.
+
+Desde a 0.3.1 ele fica **fechado por padrão** e só responde quando as duas condições são verdadeiras:
+
+```text
+APP_ENV=dev
+ENABLE_DEV_ADMIN_INGEST=true
+```
+
+Mesmo quando habilitado, o endpoint não aparece no OpenAPI.
+
+O `docker-compose.yml` habilita essa opção explicitamente apenas para o quickstart DEV.
+
+## Concorrência de ingestão
+
+No PostgreSQL, fluxos mutantes de RPI usam advisory lock para serializar a ingestão.
+
+Uma segunda execução concorrente não espera indefinidamente nem disputa o cursor: ela falha rapidamente.
+
+O lock é validado contra PostgreSQL real na CI.
+
+## Monitor de novas RPIs
+
+O monitor remoto:
+
+- não possui credenciais de banco;
+- não faz ingestão automática;
+- usa apenas `contents: read` e `issues: write`;
+- não interpreta HTTP 5xx do INPI como ausência de publicação;
+- não cria RPI ou issue falsa quando a fonte está indisponível.
 
 ## Relato de vulnerabilidades
 
 Não publique segredos, credenciais, dados pessoais ou detalhes de exploração em issues públicas.
 
-Quando o repositório estiver hospedado no GitHub, prefira um **Private Vulnerability Report / Security Advisory**, se a funcionalidade estiver habilitada. Se não estiver, abra apenas uma issue sem detalhes sensíveis solicitando um canal privado com o mantenedor.
+Prefira um Private Vulnerability Report / Security Advisory quando disponível.
 
-## Escopo de segurança desta release
+## Ainda fora do escopo
 
-Ainda não estão concluídos:
+Não estão concluídos para produção:
 
-- autenticação;
+- autenticação completa;
 - autorização;
 - isolamento multi-tenant;
 - rate limiting;
-- hardening do endpoint administrativo;
 - observabilidade de produção;
 - revisão completa de LGPD;
-- política operacional de rotação de segredos.
+- rotação operacional de segredos;
+- hardening de infraestrutura de produção.
 
 ## Credenciais locais
 
-As credenciais presentes no `docker-compose.yml` são valores de desenvolvimento local e não devem ser reutilizadas em HML ou produção.
+As credenciais do `docker-compose.yml` são valores locais de DEV e não devem ser reutilizadas em HML ou produção.
 
-Arquivos `.env`, fontes brutas, logs, diretórios `.gentill/` e evidências locais são excluídos da publicação por `.gitignore`.
+Arquivos `.env`, fontes brutas, logs, diretórios `.gentill/` e evidências locais são excluídos da publicação.
 
 ## Dados do INPI
 
-O projeto deve preservar a distinção entre:
+O projeto preserva a distinção entre:
 
 - informação oficial da fonte;
 - dado normalizado pelo sistema;
