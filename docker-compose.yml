@@ -13,15 +13,18 @@ services:
     volumes:
       - inpi_pgdata:/var/lib/postgresql/data
       - ./db/001_init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
+
   api:
     build: .
     environment:
       DATABASE_URL: postgresql+psycopg://inpi:inpi@db:5432/inpi
       APP_ENV: dev
+      ENABLE_DEV_ADMIN_INGEST: "true"
     ports:
       - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
+
 volumes:
   inpi_pgdata:
