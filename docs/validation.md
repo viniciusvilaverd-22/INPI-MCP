@@ -1,101 +1,59 @@
-# Estado de validacao — INPI MCP 0.2.1
+# Estado de validacao — INPI MCP 0.3.1
 
-Data: **04/10/2026**  
+Data: **15/10/2026**  
 Ambiente: **DEV**  
-Status: **PUBLICADO / CI PASS**
+Status: **CANDIDATO / CI PENDENTE**
 
-## Publicacao
+## Baseline 0.3.0
+
+A 0.3.0 publicada possui:
+
+- ingestao incremental;
+- `last_ingested_rpi` e `last_checked_rpi`;
+- migration 003;
+- monitor de novas RPIs em modo best-effort;
+- 25 testes PASS;
+- migrations 002–003 PASS;
+- Docker Compose PASS.
+
+O acesso da fonte oficial a partir de runners GitHub permanece degradado por HTTP 503. Esse erro nao e interpretado como ausencia de RPI.
+
+## Hardening 0.3.1
+
+O candidato adiciona:
+
+- advisory lock PostgreSQL para serializar fluxos mutantes de RPI;
+- falha rapida quando outra ingestao ja esta ativa;
+- retry de uma RPI previamente `failed` sem avancar o cursor antes do sucesso;
+- observabilidade operacional no endpoint/status;
+- endpoint administrativo fechado por padrao;
+- opt-in administrativo restrito a DEV;
+- transporte MCP stdio real na suite.
+
+## Gates pendentes de CI
 
 ```text
-release commit = 50d932f7231f032a5d842a129b13b78f3f486874
-pull request   = #1
-PR CI run      = 37182703042
-main CI run    = 37182747943
+POSTGRES_ADVISORY_LOCK            PENDING
+FAILED_RUN_RECOVERY              PENDING
+RPI_OBSERVABILITY                PENDING
+ADMIN_ENDPOINT_DEFAULT_CLOSED     PENDING
+MCP_STDIO_TRANSPORT              PENDING
+PYTHON_3_11                      PENDING
+PYTHON_3_13                      PENDING
+POSTGRES_MIGRATIONS_002_003      PENDING
+DOCKER_COMPOSE_QUICKSTART        PENDING
 ```
 
-Todos os jobs da CI na `main` passaram:
+## Baseline real RPI 2908
 
 ```text
-Python 3.11                PASS
-Python 3.13                PASS
-PostgreSQL migration 002   PASS
-Docker Compose quickstart  PASS
-```
-
-## Suite local apos o E2E
-
-```text
-11 passed, 1 warning in 0.83s
-```
-
-## RPI 2908 — E2E real
-
-A RPI oficial 2908 foi ingerida em PostgreSQL 16 descartavel, sem novo download e sem tocar em producao.
-
-```text
-RPI                2908
-data               29/09/2026
 processos          39.858
 classes Nice       34.736
 eventos            40.201
-parser             rpi-marcas-xml-0.2.1
-primeira ingestao  145.227 s
-segunda ingestao    64.940 s
-novos eventos       0
+segunda ingestao   0 novos eventos
+XML SHA-256        23392bfc9e03c52c9fa8befc9be21e4f3ee50993dfe21edb876cbbd62706089d
 ```
-
-Gates:
-
-```text
-RPI_2908_FULL_REAL_INGESTION = PASS
-IDEMPOTENCY_REAL_DATA        = PASS
-API_REAL_DATA                = PASS
-MCP_REAL_DATA                = PASS_IN_PROCESS
-MIGRATION_002_POSTGRES       = PASS
-DOCKER_COMPOSE_QUICKSTART    = PASS
-```
-
-SHA-256 do XML ingerido:
-
-```text
-23392bfc9e03c52c9fa8befc9be21e4f3ee50993dfe21edb876cbbd62706089d
-```
-
-O MCP validou registro e execucao in-process de `search_trademark`, `compare_trademark` e `get_trademark`. O transporte stdio externo nao fez parte deste E2E.
-
-## Migration 002
-
-A CI criou um schema legado em PostgreSQL 16, preservou dados preexistentes, aplicou `db/002_specification_hash.sql`, inseriu uma especificacao longa e reaplicou a migration para provar idempotencia.
-
-A nova chave e:
-
-```text
-trademark_id + nice_class + specification_hash
-```
-
-A migration nao exclui duplicatas automaticamente; se detectar grupos equivalentes, aborta para revisao manual.
-
-## Docker quickstart
-
-A CI executou:
-
-```text
-docker compose up -d --build
-GET /health
-ingestao da fixture
-busca MARCA EXEMPLO
-docker compose down -v
-```
-
-Resultado: **PASS**.
 
 ## Producao
 
-Continua **nao declarado**:
-
-- production-ready;
-- autenticacao pronta;
-- multi-tenant pronto;
-- endpoint administrativo seguro para Internet;
-- monitoramento recorrente operacional;
-- billing operacional.
+Continua nao declarada como pronta para producao.
