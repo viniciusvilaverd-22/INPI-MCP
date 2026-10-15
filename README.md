@@ -3,83 +3,95 @@
 ![Python](https://img.shields.io/badge/Python-3.11%2B-informational)
 ![FastAPI](https://img.shields.io/badge/FastAPI-API-informational)
 ![MCP](https://img.shields.io/badge/Model%20Context%20Protocol-MCP-informational)
-![Version](https://img.shields.io/badge/version-0.3.0-yellow)
+![Version](https://img.shields.io/badge/version-0.3.1-yellow)
 
 > Infraestrutura experimental para pesquisar, comparar, ingerir e acompanhar publicacoes de marcas brasileiras com API, PostgreSQL e Model Context Protocol.
 
 **Projeto independente, nao oficial e sem vinculo institucional com o Instituto Nacional da Propriedade Industrial (INPI).**
 
-## O que a 0.3.0 acrescenta
+## 0.3.1 — hardening
 
-A linha 0.3.0 transforma a ingestao unitária em um fluxo incremental retomavel:
+A 0.3.1 endurece a linha incremental 0.3.0:
 
-- estado persistente `last_ingested_rpi`;
-- `last_checked_rpi` separado do ultimo numero concluido;
-- historico de execucoes por RPI;
-- `ingest-range` para intervalos;
-- `ingest-next` para retomar automaticamente;
-- parada segura na primeira RPI ainda indisponivel;
-- descoberta leve de novas RPIs sem baixar o ZIP inteiro;
-- monitor agendado no GitHub que abre um issue quando detecta nova publicacao;
-- migration PostgreSQL `003_rpi_ingestion_state.sql`;
-- endpoint read-only `GET /v1/rpi/status`.
-
-**O monitor nao ingere automaticamente.** Deteccao e mutacao de banco permanecem separadas.
-
-## Comece em 5 minutos
-
-```bash
-docker compose up --build
-```
-
-Depois abra:
-
-- **Demo:** `http://localhost:8000/demo`
-- **Swagger:** `http://localhost:8000/docs`
-- **Health:** `http://localhost:8000/health`
-- **Estado RPI:** `http://localhost:8000/v1/rpi/status`
-
-Guia completo: [docs/quickstart.md](docs/quickstart.md).
+- lock PostgreSQL por advisory lock para impedir duas ingestoes mutantes simultaneas;
+- retomada comprovavel depois de execucao `failed`;
+- observabilidade em `GET /v1/rpi/status`;
+- duracao, contagem de estados, cursor gap e ultima falha;
+- endpoint `/v1/admin/ingest/xml` fechado por padrao;
+- abertura do endpoint administrativo apenas com `APP_ENV=dev` **e** `ENABLE_DEV_ADMIN_INGEST=true`;
+- prova MCP via transporte stdio real, alem do teste in-process;
+- CI PostgreSQL com prova real de contencao do lock.
 
 ## Ingestao incremental
 
-Estabeleca o primeiro numero conhecido:
+Estabeleca o baseline validado:
 
 ```bash
 python -m app.cli ingest-rpi 2908
-```
-
-Consulte o cursor:
-
-```bash
 python -m app.cli rpi-status
 ```
 
-Depois retome automaticamente:
+Retome a partir da ultima RPI concluida:
 
 ```bash
 python -m app.cli ingest-next --max-count 4
 ```
 
-Se a proxima RPI ainda nao existir, a execucao para sem alterar `last_ingested_rpi`. Na proxima tentativa, ela recomeca exatamente nesse numero.
+Se a proxima publicacao ainda nao estiver disponivel ou uma execucao falhar, `last_ingested_rpi` nao avanca indevidamente.
 
-Para um intervalo explicito:
+Intervalo explicito:
 
 ```bash
 python -m app.cli ingest-range 2908 2912
 ```
 
-Para apenas verificar publicacoes, sem ingestao:
+Apenas detectar publicacoes:
+
+```bash
+python -m app.cli latest-rpi
+```
+
+ou, para diagnostico direto dos ZIPs:
 
 ```bash
 python -m app.cli discover-rpi --after 2908 --max-scan 4
 ```
 
-Detalhes: [docs/rpi-ingestion.md](docs/rpi-ingestion.md) e [docs/rpi-monitoring.md](docs/rpi-monitoring.md).
+## Estado operacional
+
+```bash
+python -m app.cli rpi-status
+```
+
+ou:
+
+```text
+GET /v1/rpi/status
+```
+
+O retorno inclui:
+
+- `last_ingested_rpi`;
+- `last_checked_rpi`;
+- `cursor_gap`;
+- contagens por status;
+- ultima execucao e duracao;
+- ultima falha;
+- historico recente.
+
+## Concorrencia
+
+Em PostgreSQL, os fluxos mutantes de RPI usam um advisory lock global do INPI MCP.
+
+Se outra ingestao estiver ativa, a segunda tentativa falha rapidamente com:
+
+```text
+outra ingestao de RPI ja esta em execucao neste banco
+```
+
+Isso evita dois `ingest-next` concorrentes disputando o mesmo cursor.
 
 ## RPI 2908 — prova E2E real
-
-A RPI oficial 2908 foi validada em PostgreSQL 16 descartavel:
 
 ```text
 processos         39.858
@@ -87,7 +99,7 @@ classes Nice      34.736
 eventos           40.201
 2a ingestao       0 novos eventos
 API real data     PASS
-MCP real data     PASS_IN_PROCESS
+MCP real data     PASS
 parser            rpi-marcas-xml-0.2.1
 ```
 
@@ -96,7 +108,24 @@ parser            rpi-marcas-xml-0.2.1
 | RM2908.zip | 10.726.796 bytes | `63794e53ee247d0c70fb9b77f98ed45e2602bb0e5166e347c00d938efa1ff400` |
 | RM2908.xml | 61.214.732 bytes | `23392bfc9e03c52c9fa8befc9be21e4f3ee50993dfe21edb876cbbd62706089d` |
 
-## Banco persistente existente
+A 0.3.1 acrescenta ao gate MCP uma sessao **stdio real**, com `initialize`, `list_tools` e chamadas reais de `search_trademark`, `get_trademark` e `compare_trademark`.
+
+## Docker DEV
+
+```bash
+docker compose up --build
+```
+
+O compose DEV habilita explicitamente o endpoint administrativo local:
+
+```text
+APP_ENV=dev
+ENABLE_DEV_ADMIN_INGEST=true
+```
+
+Fora dessa combinacao, o endpoint administrativo responde 404 e nao aparece no OpenAPI.
+
+## Migrations
 
 Para bancos anteriores a 0.2.1:
 
@@ -104,13 +133,22 @@ Para bancos anteriores a 0.2.1:
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/002_specification_hash.sql
 ```
 
-Para habilitar o estado incremental da 0.3.0:
+Para estado incremental 0.3.x:
 
 ```bash
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/003_rpi_ingestion_state.sql
 ```
 
-As migrations sao testadas para reaplicacao idempotente. Nenhuma delas exclui automaticamente registros de marcas.
+## Monitor de novas RPIs
+
+O workflow de monitoramento e **best-effort**. O INPI tem respondido HTTP 503 a runners do GitHub em alguns momentos.
+
+Esse comportamento e tratado de forma segura:
+
+- erro 5xx nao e interpretado como "nao existe nova RPI";
+- nenhuma RPI falsa e criada;
+- nenhuma ingestao automatica de banco e executada;
+- o monitor nao possui credenciais de banco.
 
 ## MCP
 
@@ -133,20 +171,20 @@ O motor `sim-v0.1.0` combina:
 15% afinidade de mercado/classe
 ```
 
-O score significa **similaridade computacional**, nao probabilidade de deferimento ou parecer juridico.
+O score significa similaridade computacional, nao probabilidade de deferimento ou parecer juridico.
 
 ## Seguranca
 
-- o endpoint `/v1/admin/ingest/xml` continua restrito a DEV;
-- o monitor do GitHub usa apenas permissao de leitura de conteudo e escrita de issues;
-- o monitor nao recebe credenciais de banco;
-- `raw/`, `.env`, `.gentill/` e evidencias locais permanecem fora do Git.
+- endpoint administrativo fechado por padrao;
+- monitor sem credenciais de banco;
+- `raw/`, `.env`, `.gentill/` e evidencias locais fora do Git;
+- producao continua fora do escopo desta release.
 
 Consulte [SECURITY.md](SECURITY.md).
 
 ## Licenca
 
-Este e um repositorio publico/source-available. O arquivo [LICENSE](LICENSE) define os direitos de uso atuais; a publicacao do codigo nao altera essa licenca.
+Este e um repositorio publico/source-available. O arquivo [LICENSE](LICENSE) define os direitos de uso atuais.
 
 ## Aviso
 
