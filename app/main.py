@@ -5,6 +5,7 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 
+from .config import settings
 from .db import SessionLocal, init_db
 from .repository import TrademarkRepository
 from .services import TrademarkService
@@ -12,7 +13,7 @@ from .schemas import SearchRequest, CompareRequest, IngestResponse
 from .ingest import ingest_xml
 from .rpi_incremental import get_ingestion_status
 
-VERSION = "0.3.0"
+VERSION = "0.3.1"
 RELEASE = "community-v1"
 DEMO_PATH = Path(__file__).parent / "static" / "demo.html"
 
@@ -48,7 +49,7 @@ def root():
         "name": "INPI MCP",
         "version": VERSION,
         "release": RELEASE,
-        "status": "dev",
+        "status": settings.app_env,
         "demo": "/demo",
         "docs": "/docs",
         "health": "/health",
@@ -59,7 +60,12 @@ def root():
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "version": VERSION, "release": RELEASE}
+    return {
+        "status": "ok",
+        "version": VERSION,
+        "release": RELEASE,
+        "environment": settings.app_env,
+    }
 
 
 @app.get("/demo", response_class=HTMLResponse, include_in_schema=False)
@@ -114,8 +120,11 @@ def get_process(process_number: str, session: Session = Depends(get_session)):
     }
 
 
-@app.post("/v1/admin/ingest/xml", response_model=IngestResponse)
+@app.post("/v1/admin/ingest/xml", response_model=IngestResponse, include_in_schema=False)
 def ingest(path: str, session: Session = Depends(get_session)):
+    if settings.app_env.lower() != "dev" or not settings.enable_dev_admin_ingest:
+        raise HTTPException(404, "endpoint indisponivel")
+
     p = Path(path)
     if not p.exists() or not p.is_file():
         raise HTTPException(400, "arquivo XML nao encontrado")
