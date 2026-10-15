@@ -36,6 +36,9 @@ jobs:
       - name: Executar testes
         run: pytest -q
 
+      - name: Provar transporte MCP stdio
+        run: pytest -q tests/test_mcp_stdio.py
+
       - name: Smoke da CLI com fixture
         run: python -m app.cli inspect-rpi fixtures/rpi-layout-sample.xml
 
@@ -116,6 +119,53 @@ jobs:
 
       - name: Validar estado incremental vazio
         run: docker compose exec -T api python -m app.cli rpi-status
+
+      - name: Provar advisory lock PostgreSQL
+        run: |
+          docker compose exec -T api python - <<'PY'
+          import threading
+
+          from app.db import SessionLocal
+          from app.rpi_incremental import RPIIngestionBusyError, rpi_ingestion_lock
+
+          ready = threading.Event()
+          release = threading.Event()
+          errors = []
+
+          def holder():
+              try:
+                  with SessionLocal() as session:
+                      with rpi_ingestion_lock(session):
+                          ready.set()
+                          if not release.wait(10):
+                              raise RuntimeError("lock holder timeout")
+              except Exception as exc:
+                  errors.append(exc)
+                  ready.set()
+
+          thread = threading.Thread(target=holder, daemon=True)
+          thread.start()
+          if not ready.wait(5):
+              raise RuntimeError("lock holder did not start")
+          if errors:
+              raise errors[0]
+
+          with SessionLocal() as session:
+              try:
+                  with rpi_ingestion_lock(session):
+                      raise AssertionError("second ingestion unexpectedly acquired the lock")
+              except RPIIngestionBusyError:
+                  pass
+
+          release.set()
+          thread.join(timeout=5)
+          if thread.is_alive():
+              raise RuntimeError("lock holder did not finish")
+          if errors:
+              raise errors[0]
+
+          print("POSTGRES_ADVISORY_LOCK=PASS")
+          PY
 
       - name: Ingerir fixture e pesquisar
         run: |
